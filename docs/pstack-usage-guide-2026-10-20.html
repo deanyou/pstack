@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pstack 使用指南 — 12 个工程 skill 怎么用（基于 deanyou/pstack）</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --line:#2b3646;
+    --txt:#e6edf3; --dim:#8b949e; --faint:#6e7681;
+    --green:#3fb950; --blue:#58a6ff; --purple:#bc8cff; --amber:#d29922; --red:#f85149; --teal:#39c5cf;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px 80px}
+  header.hero{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+  .kicker{display:inline-block;font-size:12px;letter-spacing:.2em;color:var(--teal);text-transform:uppercase;margin-bottom:14px}
+  h1{font-size:38px;line-height:1.3;margin:0 0 14px}
+  h1 .accent{color:var(--green)}
+  .lede{font-size:17px;color:var(--dim);max-width:760px;margin:0}
+  .lede b{color:var(--txt)}
+  .meta{margin-top:18px;font-size:13px;color:var(--faint)}
+  .meta a{color:var(--blue);text-decoration:none}
+  h2{font-size:24px;margin:56px 0 8px;padding-top:8px}
+  h2 .n{display:inline-block;min-width:34px;height:34px;line-height:34px;text-align:center;border-radius:9px;background:var(--panel2);border:1px solid var(--line);color:var(--teal);font-size:16px;margin-right:10px}
+  .sub{color:var(--dim);margin:0 0 22px;max-width:820px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;position:relative}
+  .card:hover{border-color:#3d4c63}
+  .card h3{margin:0 0 6px;font-size:17px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .card h3 .tag{font-family:inherit}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle;font-weight:600}
+  .t-understand{background:rgba(88,166,255,.14);color:var(--blue);border:1px solid rgba(88,166,255,.35)}
+  .t-review{background:rgba(248,81,73,.12);color:var(--red);border:1px solid rgba(248,81,73,.35)}
+  .t-discipline{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.35)}
+  .t-write{background:rgba(210,153,34,.12);color:var(--amber);border:1px solid rgba(210,153,34,.35)}
+  .t-reflect{background:rgba(188,140,255,.12);color:var(--purple);border:1px solid rgba(188,140,255,.35)}
+  .card p{margin:8px 0;font-size:14px;color:var(--dim)}
+  .card p b{color:var(--txt)}
+  .trigger{font-size:12.5px;color:var(--faint);margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}
+  .trigger code{color:var(--teal);font-size:12px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#0a0e14;padding:2px 7px;border-radius:6px;font-size:13px;border:1px solid var(--line)}
+  pre{background:#0a0e14;border:1px solid var(--line);border-radius:12px;padding:18px 20px;overflow-x:auto;font-size:13.5px;line-height:1.7}
+  pre .c{color:var(--faint)} pre .k{color:var(--green)} pre .s{color:var(--amber)}
+  .flow{display:flex;flex-direction:column;gap:0;margin-top:8px}
+  .frow{display:grid;grid-template-columns:170px 1fr;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px;background:var(--panel)}
+  .frow .task{background:var(--panel2);padding:14px 16px;font-weight:700;font-size:14.5px;border-right:1px solid var(--line);display:flex;align-items:center}
+  .frow .combo{padding:12px 16px;font-size:13.5px;color:var(--dim)}
+  .frow .combo code{margin:2px}
+  .note{background:rgba(210,153,34,.07);border:1px solid rgba(210,153,34,.3);border-radius:10px;padding:14px 18px;font-size:14px;color:var(--dim);margin:18px 0}
+  .note b{color:var(--amber)}
+  .lessons{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .lesson{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:10px;padding:16px 20px}
+  .lesson h4{margin:0 0 6px;font-size:15.5px}
+  .lesson p{margin:0;font-size:13.5px;color:var(--dim)}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;counter-reset:st}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;position:relative}
+  .step::before{counter-increment:st;content:counter(st);position:absolute;top:-14px;left:16px;width:28px;height:28px;border-radius:50%;background:var(--green);color:#04120a;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center}
+  .step h4{margin:6px 0 8px;font-size:15px}
+  .step p{margin:0;font-size:13px;color:var(--dim)}
+  .term{background:#0a0e14;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.75;min-height:132px;color:var(--dim);overflow:hidden}
+  .term .tp{color:var(--green);font-weight:700}
+  .term .tc{color:var(--txt)}
+  .term .tout{color:var(--dim)}
+  .term .tok{color:var(--green)}
+  .term .tbad{color:var(--red)}
+  .term .cur{display:inline-block;width:7px;height:13px;background:var(--green);vertical-align:-2px;margin-left:2px;animation:blk 1s steps(1) infinite}
+  @keyframes blk{50%{opacity:0}}
+  footer{margin-top:70px;border-top:1px solid var(--line);padding-top:20px;font-size:12.5px;color:var(--faint)}
+  footer a{color:var(--blue);text-decoration:none}
+  @media(max-width:640px){.frow{grid-template-columns:1fr}.frow .task{border-right:none;border-bottom:1px solid var(--line)}h1{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <span class="kicker">PSTACK · Agent Engineering Skills</span>
+  <h1>让 agent 写<span class="accent">更少、但更高质量</span>的代码</h1>
+  <p class="lede">pstack 是 poteto（React 核心团队、曾在 Meta / Netflix / Cursor 工作）每天用来交付高质量代码的一套 <b>Agent Skill</b>。核心理念：<b>吞吐量没有质量毫无意义</b>——先钻深，再求快。当 agent 能写出可验证的好代码，你才敢真正并行派发多个 agent，这就是 poteto 说的 <b>fearless parallelism</b>。</p>
+  <div class="meta">你的 fork <a href="https://github.com/deanyou/pstack">deanyou/pstack</a>（cursor 官方 <a href="https://github.com/cursor/plugins/tree/main/pstack">cursor/plugins/pstack</a> 的 harness-neutral 镜像）· 上游 v0.15.29 · 56 个 skill · 本页覆盖你已装的 12 个核心 skill + §7 的 4 个 verification skill</div>
+</header>
+<h2><span class="n">▶</span>动图：一次派单的生命周期</h2>
+<p class="sub">live-panel 生成的实时动图：左侧五种任务组合轮流点亮并打出当前组合的 skill，中间是 <b>用户指令 → pi-task 派单 → agent 执行 → 三道验证门 → 产物</b> 的完整链路，底部 session log 滚动，计数器与日志同源。图中数字为示意（illustrative），非真实遥测；另有视频版 <code>pstack-dispatch.mp4</code>。</p>
+<iframe title="pstack 派单中枢动图" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+&lt;title&gt;live-panel&lt;/title&gt;
+&lt;style&gt;
+/* live-panel template. Content, colours, sizes: all come from the JSON config (see references/config-schema.md).
+   Layout never moves. Everything that changes is a pure function of time: window.seek(t). */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden}
+body{background:var(--c-bg,#111);}
+#stage{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;white-space:pre;color:var(--c-fg);font-family:var(--font);font-size:var(--fs);line-height:var(--lh)}
+#stage&gt;*{position:absolute}
+b,.b{font-weight:700}
+.tb{left:0;top:0;text-align:center;background:var(--c-bar);color:var(--c-dim)}
+.tb i{position:absolute;border-radius:50%}
+.sw{display:inline-block;width:.62em;height:.62em;margin-right:.55em;vertical-align:baseline}
+.box{border-top:2px solid;border-bottom:2px solid}
+.box::before,.box::after{content:&quot;&quot;;position:absolute;top:0;bottom:0;width:2px;background:repeating-linear-gradient(180deg,currentColor 0 calc(var(--lh) - 7px),transparent calc(var(--lh) - 7px) var(--lh))}
+.box.solid{border:var(--bw,2px) solid currentColor;border-radius:var(--radius,0px)}
+.box.solid::before,.box.solid::after{display:none}
+.box.dashed{border-style:dashed}
+.box::before{left:0}.box::after{right:0}
+.box .ln{color:var(--c-fg);height:var(--lh);padding-right:0}
+.ln.flex{display:flex;align-items:center}
+.ln.flex&gt;div{overflow:visible}
+.wire{background:var(--c-line)}
+.dashv{background:repeating-linear-gradient(180deg,var(--c-line) 0 5px,transparent 5px 9px)}
+.dashh{background:repeating-linear-gradient(90deg,var(--c-line) 0 5px,transparent 5px 9px)}
+.pk{border-radius:50%;width:12px;height:12px;margin:-6px 0 0 -6px;display:none}
+.pk.s{width:6px;height:6px;margin:-3px 0 0 -3px}
+.bar{position:relative;display:block;height:20px;background-image:radial-gradient(var(--c-dots,#566078) 1px,transparent 1.3px);background-size:4px 4px}
+.bar u{position:absolute;left:0;top:0;bottom:0;text-decoration:none}
+.bar u.end::after{content:&quot;&quot;;position:absolute;right:0;top:0;bottom:0;width:8px;background:repeating-conic-gradient(var(--c-bg) 0 25%,transparent 0 50%) 0 0/4px 4px;opacity:.55}
+.bar s{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--c-fg);text-decoration:none}
+.cur{display:inline-block;width:.62em;height:1.05em;vertical-align:-.18em;margin-left:.4em}
+.tarrow{height:0;border-top:2px dashed var(--c-line)}
+.glyph{text-align:center;line-height:1}
+.logframe{border:2px solid var(--c-line2,#3a4154);border-top:0}
+.logtop{height:0;border-top:2px solid var(--c-line2,#3a4154)}
+.lgrow{position:absolute}
+.lgrow span{position:absolute;top:0}
+#err{position:absolute;left:10px;top:10px;color:#f66;font:14px monospace;white-space:pre-wrap;z-index:9}
+&lt;/style&gt;&lt;/head&gt;&lt;body&gt;
+&lt;div id=&quot;stage&quot;&gt;&lt;/div&gt;
+&lt;script id=&quot;live-config&quot; type=&quot;application/json&quot;&gt;{&quot;canvas&quot;: {&quot;duration&quot;: 30, &quot;fps&quot;: 30, &quot;height&quot;: 1500, &quot;preroll&quot;: 12, &quot;preset&quot;: &quot;4:5&quot;, &quot;width&quot;: 1200}, &quot;clock&quot;: {&quot;rate&quot;: 3, &quot;start&quot;: &quot;09:41:07&quot;}, &quot;credit&quot;: {&quot;text&quot;: &quot;pstack 派单流程示意 · live-panel 生成 · 图中数字为模拟（illustrative），非真实遥测&quot;, &quot;y&quot;: 1486}, &quot;elements&quot;: [{&quot;align&quot;: &quot;center&quot;, &quot;ls&quot;: 1, &quot;runs&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;wh&quot;, &quot;t&quot;: &quot;PSTACK &quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;cy&quot;, &quot;t&quot;: &quot;派单中枢&quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;wh&quot;, &quot;t&quot;: &quot;  ·  PI-TASK DISPATCH&quot;}], &quot;type&quot;: &quot;text&quot;, &quot;w&quot;: 1200, &quot;x&quot;: 0, &quot;y&quot;: 80}, {&quot;type&quot;: &quot;rule&quot;, &quot;w&quot;: 1132, &quot;x&quot;: 34, &quot;y&quot;: 108}, {&quot;align&quot;: &quot;center&quot;, &quot;runs&quot;: [{&quot;sw&quot;: &quot;cy&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;用户 / 产物&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;      &quot;}, {&quot;sw&quot;: &quot;bl&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;派单 / 执行&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;      &quot;}, {&quot;sw&quot;: &quot;gr&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;验证门&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;      &quot;}, {&quot;sw&quot;: &quot;pu&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;组合侧栏&quot;}], &quot;type&quot;: &quot;text&quot;, &quot;w&quot;: 1200, &quot;x&quot;: 0, &quot;y&quot;: 141}, {&quot;color&quot;: &quot;pu&quot;, &quot;h&quot;: 1028, &quot;lines&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;pu&quot;, &quot;t&quot;: &quot;组合 · COMBOS&quot;}, {&quot;c&quot;: &quot;pu&quot;, &quot;t&quot;: &quot;按任务类型挂 skill&quot;}, {&quot;trigger&quot;: [&quot;combos&quot;, 0]}, &quot;&quot;, {&quot;trigger&quot;: [&quot;combos&quot;, 1]}, &quot;&quot;, {&quot;trigger&quot;: [&quot;combos&quot;, 2]}, &quot;&quot;, {&quot;trigger&quot;: [&quot;combos&quot;, 3]}, &quot;&quot;, {&quot;trigger&quot;: [&quot;combos&quot;, 4]}, &quot;&quot;, {&quot;c&quot;: &quot;mute&quot;, &quot;t&quot;: &quot;当前组合技能：&quot;}, {&quot;indent&quot;: 12, &quot;runs&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;pu&quot;, &quot;v&quot;: &quot;combos.adv0&quot;}], &quot;size&quot;: 19}, {&quot;indent&quot;: 12, &quot;runs&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;pu&quot;, &quot;v&quot;: &quot;combos.adv1&quot;}], &quot;size&quot;: 19}, &quot;&quot;, {&quot;items&quot;: [{&quot;runs&quot;: [{&quot;c&quot;: &quot;mute&quot;, &quot;t&quot;: &quot;calls&quot;}], &quot;w&quot;: 140}, {&quot;align&quot;: &quot;right&quot;, &quot;runs&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;pu&quot;, &quot;v&quot;: &quot;combos.calls&quot;}], &quot;w&quot;: 51}]}, {&quot;items&quot;: [{&quot;runs&quot;: [{&quot;c&quot;: &quot;mute&quot;, &quot;t&quot;: &quot;tokens read&quot;}], &quot;w&quot;: 140}, {&quot;align&quot;: &quot;right&quot;, &quot;runs&quot;: [{&quot;c&quot;: &quot;pu&quot;, &quot;v&quot;: &quot;combos.tokens&quot;}], &quot;w&quot;: 51}]}, &quot;&quot;, {&quot;b&quot;: 1, &quot;c&quot;: &quot;cy&quot;, &quot;t&quot;: &quot;技能库 · 12 SKILLS&quot;}, &quot;&quot;, {&quot;b&quot;: 1, &quot;c&quot;: &quot;bl&quot;, &quot;t&quot;: &quot;理解&quot;}, {&quot;t&quot;: &quot;how · why&quot;}, {&quot;t&quot;: &quot;teach · recall&quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;ye&quot;, &quot;t&quot;: &quot;评审&quot;}, {&quot;t&quot;: &quot;interrogate&quot;}, {&quot;t&quot;: &quot;blast-radius&quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;gr&quot;, &quot;t&quot;: &quot;纪律&quot;}, {&quot;t&quot;: &quot;tdd · prove-it-works&quot;}, {&quot;t&quot;: &quot;show-me-your-work&quot;}, {&quot;t&quot;: &quot;figure-it-out&quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;pu&quot;, &quot;t&quot;: &quot;写作 · 反思&quot;}, {&quot;t&quot;: &quot;unslop · reflect&quot;}], &quot;pad&quot;: [13, 7, 7], &quot;type&quot;: &quot;box&quot;, &quot;w&quot;: 300, &quot;x&quot;: 40, &quot;y&quot;: 172}, {&quot;dash&quot;: true, &quot;from&quot;: [452, 262], &quot;to&quot;: [452, 507], &quot;type&quot;: &quot;line&quot;}, {&quot;from&quot;: [345, 262], &quot;i&quot;: 0, &quot;machine&quot;: &quot;combos&quot;, &quot;to&quot;: [448, 262], &quot;type&quot;: &quot;tarrow&quot;}, {&quot;from&quot;: [345, 323], &quot;i&quot;: 1, &quot;machine&quot;: &quot;combos&quot;, &quot;to&quot;: [448, 323], &quot;type&quot;: &quot;tarrow&quot;}, {&quot;from&quot;: [345, 385], &quot;i&quot;: 2, &quot;machine&quot;: &quot;combos&quot;, &quot;to&quot;: [448, 385], &quot;type&quot;: &quot;tarrow&quot;}, {&quot;from&quot;: [345, 446], &quot;i&quot;: 3, &quot;machine&quot;: &quot;combos&quot;, &quot;to&quot;: [448, 446], &quot;type&quot;: &quot;tarrow&quot;}, {&quot;from&quot;: [345, 507], &quot;i&quot;: 4, &quot;machine&quot;: &quot;combos&quot;, &quot;to&quot;: [448, 507], &quot;type&quot;: &quot;tarrow&quot;}, {&quot;from&quot;: [452, 410], &quot;to&quot;: [466, 410], &quot;type&quot;: &quot;line&quot;}, {&quot;color&quot;: &quot;cy&quot;, &quot;h&quot;: 118, &quot;lines&quot;: [{&quot;runs&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;cy&quot;, &quot;t&quot;: &quot;用户指令 · USER&quot;}]}, {&quot;t&quot;: &quot;修复 virtuoso-cli 的 X11 cookie bug&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;新任务 = 新 session-id · 负约束写明&quot;}], &quot;pad&quot;: [13, 14], &quot;type&quot;: &quot;box&quot;, &quot;w&quot;: 490, &quot;x&quot;: 560, &quot;y&quot;: 172}, {&quot;from&quot;: [780, 290], &quot;to&quot;: [780, 340], &quot;type&quot;: &quot;line&quot;}, {&quot;color&quot;: &quot;cy&quot;, &quot;offsets&quot;: [0], &quot;path&quot;: [[780, 290], [780, 340]], &quot;period&quot;: 1.5, &quot;type&quot;: &quot;flow&quot;}, {&quot;color&quot;: &quot;bl&quot;, &quot;h&quot;: 140, &quot;lines&quot;: [{&quot;runs&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;bl&quot;, &quot;t&quot;: &quot;PI-TASK · 派单器&quot;}]}, {&quot;t&quot;: &quot;pi-task muse-&lt;slug&gt;-&lt;date&gt; \&quot;&lt;prompt&gt;\&quot;&quot;}, {&quot;t&quot;: &quot;--skill 按组合挂载 · 可重复指定&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;session-resume · stdin &lt;\/dev/null&quot;}], &quot;pad&quot;: [13, 14], &quot;type&quot;: &quot;box&quot;, &quot;w&quot;: 620, &quot;x&quot;: 470, &quot;y&quot;: 340}, {&quot;from&quot;: [780, 480], &quot;to&quot;: [780, 530], &quot;type&quot;: &quot;line&quot;}, {&quot;color&quot;: &quot;bl&quot;, &quot;offsets&quot;: [0.3], &quot;path&quot;: [[780, 480], [780, 530]], &quot;period&quot;: 2, &quot;type&quot;: &quot;flow&quot;}, {&quot;color&quot;: &quot;bl&quot;, &quot;h&quot;: 120, &quot;lines&quot;: [{&quot;runs&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;bl&quot;, &quot;t&quot;: &quot;执行 AGENT · Pi / MiniMax-M3&quot;}]}, {&quot;t&quot;: &quot;how / why 先行 → 改代码 → 跑测试&quot;}, {&quot;runs&quot;: [{&quot;v&quot;: &quot;agent&quot;}]}], &quot;pad&quot;: [13, 14], &quot;type&quot;: &quot;box&quot;, &quot;w&quot;: 620, &quot;x&quot;: 470, &quot;y&quot;: 530}, {&quot;from&quot;: [780, 650], &quot;to&quot;: [780, 705], &quot;type&quot;: &quot;line&quot;}, {&quot;color&quot;: &quot;gr&quot;, &quot;offsets&quot;: [0.6], &quot;path&quot;: [[780, 650], [780, 705]], &quot;period&quot;: 2, &quot;type&quot;: &quot;flow&quot;}, {&quot;align&quot;: &quot;left&quot;, &quot;color&quot;: &quot;gr&quot;, &quot;h&quot;: 185, &quot;lines&quot;: [{&quot;items&quot;: [{&quot;runs&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;gr&quot;, &quot;t&quot;: &quot;验证门 · VERIFY GATE&quot;}], &quot;w&quot;: 319}, {&quot;runs&quot;: [{&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;checks&quot;}], &quot;w&quot;: 100}, {&quot;align&quot;: &quot;right&quot;, &quot;runs&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;wh&quot;, &quot;v&quot;: &quot;checks&quot;}], &quot;w&quot;: 88}]}, {&quot;items&quot;: [{&quot;runs&quot;: [&quot;tdd 回归&quot;], &quot;w&quot;: 203}, {&quot;bar&quot;: {&quot;gauge&quot;: &quot;g0&quot;, &quot;h&quot;: 20, &quot;high&quot;: &quot;gr&quot;, &quot;low&quot;: &quot;cy&quot;, &quot;w&quot;: 127}, &quot;w&quot;: 154}, {&quot;runs&quot;: [{&quot;c&quot;: &quot;fg&quot;, &quot;then&quot;: {&quot;b&quot;: 1, &quot;c&quot;: &quot;wh&quot;}, &quot;v&quot;: &quot;g0&quot;, &quot;when&quot;: {&quot;eq&quot;: &quot;1&quot;, &quot;var&quot;: &quot;g0.low&quot;}}, {&quot;t&quot;: &quot; &quot;}, {&quot;v&quot;: &quot;g0.label&quot;}]}]}, {&quot;items&quot;: [{&quot;runs&quot;: [&quot;blast-radius&quot;], &quot;w&quot;: 203}, {&quot;bar&quot;: {&quot;gauge&quot;: &quot;g1&quot;, &quot;h&quot;: 20, &quot;high&quot;: &quot;gr&quot;, &quot;low&quot;: &quot;cy&quot;, &quot;w&quot;: 127}, &quot;w&quot;: 154}, {&quot;runs&quot;: [{&quot;c&quot;: &quot;fg&quot;, &quot;then&quot;: {&quot;b&quot;: 1, &quot;c&quot;: &quot;wh&quot;}, &quot;v&quot;: &quot;g1&quot;, &quot;when&quot;: {&quot;eq&quot;: &quot;1&quot;, &quot;var&quot;: &quot;g1.low&quot;}}, {&quot;t&quot;: &quot; &quot;}, {&quot;v&quot;: &quot;g1.label&quot;}]}]}, {&quot;items&quot;: [{&quot;runs&quot;: [&quot;prove-it 实物&quot;], &quot;w&quot;: 203}, {&quot;bar&quot;: {&quot;gauge&quot;: &quot;g2&quot;, &quot;h&quot;: 20, &quot;high&quot;: &quot;gr&quot;, &quot;low&quot;: &quot;cy&quot;, &quot;w&quot;: 127}, &quot;w&quot;: 154}, {&quot;runs&quot;: [{&quot;c&quot;: &quot;fg&quot;, &quot;then&quot;: {&quot;b&quot;: 1, &quot;c&quot;: &quot;wh&quot;}, &quot;v&quot;: &quot;g2&quot;, &quot;when&quot;: {&quot;eq&quot;: &quot;1&quot;, &quot;var&quot;: &quot;g2.low&quot;}}, {&quot;t&quot;: &quot; &quot;}, {&quot;v&quot;: &quot;g2.label&quot;}]}]}, {&quot;align&quot;: &quot;left&quot;, &quot;runs&quot;: [{&quot;c&quot;: &quot;gr&quot;, &quot;t&quot;: &quot;全过 → 放行 ship&quot;, &quot;then&quot;: {&quot;b&quot;: 0, &quot;c&quot;: &quot;dim&quot;}, &quot;when&quot;: {&quot;eq&quot;: &quot;low&quot;, &quot;var&quot;: &quot;mode&quot;}}, {&quot;t&quot;: &quot;  &quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;有低 → 打回 agent&quot;, &quot;then&quot;: {&quot;b&quot;: 1, &quot;c&quot;: &quot;cy&quot;}, &quot;when&quot;: {&quot;eq&quot;: &quot;low&quot;, &quot;var&quot;: &quot;mode&quot;}}]}], &quot;pad&quot;: [13, 19], &quot;type&quot;: &quot;box&quot;, &quot;w&quot;: 620, &quot;x&quot;: 470, &quot;y&quot;: 705}, {&quot;from&quot;: [780, 890], &quot;to&quot;: [780, 940], &quot;type&quot;: &quot;line&quot;}, {&quot;color&quot;: &quot;wh&quot;, &quot;offsets&quot;: [1.1], &quot;path&quot;: [[780, 890], [780, 940]], &quot;period&quot;: 2, &quot;type&quot;: &quot;flow&quot;}, {&quot;color&quot;: &quot;cy&quot;, &quot;h&quot;: 110, &quot;lines&quot;: [{&quot;runs&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;cy&quot;, &quot;t&quot;: &quot;产物 · OUTPUT&quot;}]}, {&quot;t&quot;: &quot;PR / commit SHA · 证据留痕&quot;}, {&quot;runs&quot;: [{&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;quality-log.tsv 追加一行 · 累计 &quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;wh&quot;, &quot;v&quot;: &quot;tasks&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot; 单&quot;}]}], &quot;pad&quot;: [13, 14], &quot;type&quot;: &quot;box&quot;, &quot;w&quot;: 490, &quot;x&quot;: 560, &quot;y&quot;: 940}, {&quot;align&quot;: &quot;center&quot;, &quot;runs&quot;: [{&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;验证决定成败 —— 不是 agent 的自我报告&quot;}], &quot;type&quot;: &quot;text&quot;, &quot;w&quot;: 840, &quot;x&quot;: 330, &quot;y&quot;: 1110}, {&quot;cols&quot;: [{&quot;key&quot;: &quot;time&quot;, &quot;x&quot;: 0}, {&quot;key&quot;: &quot;who&quot;, &quot;x&quot;: 126}, {&quot;key&quot;: &quot;m&quot;, &quot;x&quot;: 266}, {&quot;key&quot;: &quot;g&quot;, &quot;x&quot;: 697}], &quot;padBottom&quot;: 29, &quot;padLeft&quot;: 20, &quot;padTop&quot;: 16, &quot;rows&quot;: 4, &quot;title&quot;: &quot;session log&quot;, &quot;titleW&quot;: 179, &quot;titleX&quot;: 38, &quot;type&quot;: &quot;log&quot;, &quot;w&quot;: 1130, &quot;x&quot;: 40, &quot;y&quot;: 1246}, {&quot;runs&quot;: [{&quot;b&quot;: 1, &quot;c&quot;: &quot;gr&quot;, &quot;t&quot;: &quot;~/workspace $&quot;}, {&quot;t&quot;: &quot; pi-task &quot;}, {&quot;c&quot;: &quot;ye&quot;, &quot;t&quot;: &quot;muse-fix-20261021&quot;}, {&quot;t&quot;: &quot; \&quot;修复 X11 cookie bug\&quot; --skill tdd …&quot;}, {&quot;c&quot;: &quot;gr&quot;, &quot;cursor&quot;: true}], &quot;type&quot;: &quot;text&quot;, &quot;x&quot;: 34, &quot;y&quot;: 1430}, {&quot;runs&quot;: [{&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;派单 &quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;bl&quot;, &quot;t&quot;: &quot;[&quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;gr&quot;, &quot;v&quot;: &quot;tasks&quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;bl&quot;, &quot;t&quot;: &quot;]&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;  组合 &quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;pu&quot;, &quot;t&quot;: &quot;[&quot;}, {&quot;v&quot;: &quot;combos.status&quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;pu&quot;, &quot;t&quot;: &quot;]&quot;}, {&quot;c&quot;: &quot;dim&quot;, &quot;t&quot;: &quot;  交付包 &quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;gr&quot;, &quot;t&quot;: &quot;[&quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;gr&quot;, &quot;t&quot;: &quot;{packets}&quot;}, {&quot;b&quot;: 1, &quot;c&quot;: &quot;gr&quot;, &quot;t&quot;: &quot;]&quot;}], &quot;type&quot;: &quot;text&quot;, &quot;x&quot;: 34, &quot;y&quot;: 1461}], &quot;machines&quot;: {&quot;agent&quot;: {&quot;busy&quot;: &quot;running&quot;, &quot;done&quot;: [&quot;tests pass&quot;], &quot;log&quot;: {&quot;c&quot;: &quot;bl&quot;, &quot;msgs&quot;: [[&quot;改 src/x11.rs · 测试转绿&quot;, &quot;&quot;], [&quot;读 session 文件 · 续跑命中&quot;, &quot;&quot;]], &quot;who&quot;: &quot;agent&quot;}, &quot;off&quot;: 1.0, &quot;period&quot;: 9, &quot;phase&quot;: 0, &quot;run&quot;: 6.5, &quot;type&quot;: &quot;lane&quot;}, &quot;checks&quot;: {&quot;format&quot;: &quot;comma&quot;, &quot;rate&quot;: 9, &quot;start&quot;: 342, &quot;type&quot;: &quot;counter&quot;}, &quot;combos&quot;: {&quot;callsStart&quot;: 3, &quot;color&quot;: &quot;pu&quot;, &quot;items&quot;: [{&quot;adv&quot;: [&quot;&gt;&gt; tdd + blast-radius&quot;, &quot;&gt;&gt; prove-it + show-me&quot;], &quot;name&quot;: &quot;Bug 修复&quot;}, {&quot;adv&quot;: [&quot;&gt;&gt; tdd + prove-it&quot;, &quot;&gt;&gt; show-me + unslop&quot;], &quot;name&quot;: &quot;新功能&quot;}, {&quot;adv&quot;: [&quot;&gt;&gt; how + why&quot;, &quot;&gt;&gt; blast-radius + tdd&quot;], &quot;name&quot;: &quot;重构&quot;}, {&quot;adv&quot;: [&quot;&gt;&gt; how + why&quot;, &quot;&gt;&gt; interrogate + figure&quot;], &quot;name&quot;: &quot;调研侦察&quot;}, {&quot;adv&quot;: [&quot;&gt;&gt; blast + interrogate&quot;, &quot;&gt;&gt; prove-it-works&quot;], &quot;name&quot;: &quot;评审审计&quot;}], &quot;log&quot;: {&quot;c&quot;: &quot;pu&quot;, &quot;end&quot;: {&quot;m&quot;: &quot;{name} · 本轮派单完成&quot;}, &quot;start&quot;: {&quot;m&quot;: &quot;{name} · 组合已挂载，开始派单&quot;}, &quot;who&quot;: &quot;combo&quot;}, &quot;on&quot;: 3.4, &quot;period&quot;: 5.0, &quot;t0&quot;: -1.6, &quot;tokens&quot;: {&quot;start&quot;: 42, &quot;step&quot;: 17, &quot;unit&quot;: &quot;k&quot;}, &quot;type&quot;: &quot;triggers&quot;}, &quot;g0&quot;: {&quot;high&quot;: {&quot;dest&quot;: &quot;ship&quot;, &quot;label&quot;: &quot;pass&quot;}, &quot;log&quot;: {&quot;c&quot;: &quot;gr&quot;, &quot;msgs&quot;: [&quot;回归测试 137/138 通过&quot;, &quot;cookie 过期用例已覆盖&quot;], &quot;tail&quot;: &quot;p={value}  {label} → {dest}&quot;, &quot;who&quot;: &quot;verify&quot;}, &quot;low&quot;: {&quot;dest&quot;: &quot;agent&quot;, &quot;label&quot;: &quot;rework&quot;}, &quot;period&quot;: 3.8, &quot;seed&quot;: 11, &quot;t0&quot;: 0.6, &quot;threshold&quot;: 0.6, &quot;type&quot;: &quot;gauge&quot;, &quot;values&quot;: [0.93, 0.88, 0.96, 0.55, 0.9]}, &quot;g1&quot;: {&quot;high&quot;: {&quot;dest&quot;: &quot;ship&quot;, &quot;label&quot;: &quot;pass&quot;}, &quot;log&quot;: {&quot;c&quot;: &quot;gr&quot;, &quot;msgs&quot;: [&quot;调用方 3 处已核实&quot;, &quot;preflight 脚本已验证&quot;], &quot;tail&quot;: &quot;p={value}  {label} → {dest}&quot;, &quot;who&quot;: &quot;verify&quot;}, &quot;low&quot;: {&quot;dest&quot;: &quot;agent&quot;, &quot;label&quot;: &quot;rework&quot;}, &quot;period&quot;: 4.6, &quot;seed&quot;: 23, &quot;t0&quot;: 1.7, &quot;threshold&quot;: 0.6, &quot;type&quot;: &quot;gauge&quot;, &quot;values&quot;: [0.9, 0.95, 0.86, 0.92]}, &quot;g2&quot;: {&quot;high&quot;: {&quot;dest&quot;: &quot;ship&quot;, &quot;label&quot;: &quot;pass&quot;}, &quot;log&quot;: {&quot;c&quot;: &quot;gr&quot;, &quot;msgs&quot;: [&quot;session 文件有新活动&quot;, &quot;产物文件内容对版&quot;], &quot;tail&quot;: &quot;p={value}  {label} → {dest}&quot;, &quot;who&quot;: &quot;verify&quot;}, &quot;low&quot;: {&quot;dest&quot;: &quot;agent&quot;, &quot;label&quot;: &quot;rework&quot;}, &quot;period&quot;: 5.3, &quot;seed&quot;: 37, &quot;t0&quot;: 2.4, &quot;threshold&quot;: 0.6, &quot;type&quot;: &quot;gauge&quot;, &quot;values&quot;: [0.97, 0.91, 0.89, 0.94, 0.58]}, &quot;mode&quot;: {&quot;of&quot;: [&quot;g0&quot;, &quot;g1&quot;, &quot;g2&quot;], &quot;type&quot;: &quot;any_low&quot;}, &quot;tasks&quot;: {&quot;format&quot;: &quot;comma&quot;, &quot;rate&quot;: 5, &quot;start&quot;: 128, &quot;type&quot;: &quot;counter&quot;}}, &quot;meta&quot;: {&quot;lang&quot;: &quot;zh-CN&quot;, &quot;title&quot;: &quot;pstack dispatch (live-panel)&quot;}, &quot;theme&quot;: {&quot;colors&quot;: {&quot;bar&quot;: &quot;#262a32&quot;, &quot;bg&quot;: &quot;#14171c&quot;, &quot;bl&quot;: &quot;#8fb4f6&quot;, &quot;cy&quot;: &quot;#86e1e6&quot;, &quot;dim&quot;: &quot;#6f788c&quot;, &quot;dots&quot;: &quot;#566078&quot;, &quot;fg&quot;: &quot;#e4e8f0&quot;, &quot;gr&quot;: &quot;#7fdba8&quot;, &quot;hl&quot;: &quot;#302d45&quot;, &quot;line&quot;: &quot;#4a5367&quot;, &quot;line2&quot;: &quot;#3a4154&quot;, &quot;mute&quot;: &quot;#aab1c0&quot;, &quot;pu&quot;: &quot;#b9a2f2&quot;, &quot;wh&quot;: &quot;#ffffff&quot;, &quot;ye&quot;: &quot;#e3c07a&quot;}, &quot;font&quot;: &quot;\&quot;JetBrains Mono\&quot;,\&quot;IBM Plex Mono\&quot;,\&quot;DejaVu Sans Mono\&quot;,\&quot;Noto Sans Mono CJK SC\&quot;,monospace&quot;, &quot;fontSize&quot;: 21, &quot;lineHeight&quot;: 30.7, &quot;preset&quot;: &quot;terminal-dark&quot;}, &quot;titlebar&quot;: {&quot;text&quot;: &quot;~/pstack-dispatch — pi-task — 90x46&quot;}}&lt;/script&gt;
+&lt;script&gt;
+(function(){
+&#x27;use strict&#x27;;
+var mod=function(a,n){return ((a%n)+n)%n};
+var esc=function(s){return String(s).replace(/&amp;/g,&#x27;&amp;amp;&#x27;).replace(/&lt;/g,&#x27;&amp;lt;&#x27;)};
+// deterministic &quot;random&quot;: a pure hash of (seed, index). Never Math.random, never the wall clock.
+function hash(seed,k){var h=Math.imul((seed|0)+0x9e3779b9,0x85ebca6b)^Math.imul(k|0,0xc2b2ae35);h=Math.imul(h^(h&gt;&gt;&gt;16),0x7feb352d);h=Math.imul(h^(h&gt;&gt;&gt;15),0x846ca68b);return ((h^(h&gt;&gt;&gt;16))&gt;&gt;&gt;0)/4294967296}
+
+var cfg=null, ST=document.getElementById(&#x27;stage&#x27;), V={}, DYN=[], PK=[], EVT=[], MACH=[], CHK=[];
+var CW=1200, CH=1500, LH=30, PRE=0, FS=21;
+window.__ready=false; window.__pending=null;
+
+function fail(e){var d=document.getElementById(&#x27;err&#x27;)||document.body.appendChild(Object.assign(document.createElement(&#x27;div&#x27;),{id:&#x27;err&#x27;}));d.textContent+=String(e&amp;&amp;e.stack||e)+&#x27;\n&#x27;;window.__error=(window.__error||&#x27;&#x27;)+String(e)+&#x27;\n&#x27;}
+
+function loadConfig(){
+  var el=document.getElementById(&#x27;live-config&#x27;);
+  if(el&amp;&amp;el.textContent.trim()) return Promise.resolve(JSON.parse(el.textContent));
+  var m=/[?&amp;]config=([^&amp;]+)/.exec(location.search);
+  if(m) return fetch(decodeURIComponent(m[1])).then(function(r){return r.json()});
+  return Promise.reject(new Error(&#x27;no config: embed &lt;script id=&quot;live-config&quot; type=&quot;application/json&quot;&gt; or use ?config=path.json (over http)&#x27;));
+}
+
+// ---------- value access / templating ----------
+function tv(k){var v=V[k]; if(v==null) return &#x27;&#x27;; return typeof v===&#x27;object&#x27;?v.text:String(v)}
+function fill(s,sc){return String(s).replace(/\{([\w.\-]+)\}/g,function(m,k){var v=sc?sc(k):null; if(v==null) v=V[k]; if(v==null) return m; return typeof v===&#x27;object&#x27;?v.text:String(v)})}
+function cond(w){if(!w) return true; if(Array.isArray(w)) return w.every(cond); var v=tv(w[&#x27;var&#x27;]); if(&#x27;eq&#x27; in w) return v===String(w.eq); if(&#x27;ne&#x27; in w) return v!==String(w.ne); if(&#x27;in&#x27; in w) return w[&#x27;in&#x27;].map(String).indexOf(v)&gt;=0; return !!v}
+function cc(n){return n?&#x27;var(--c-&#x27;+n+&#x27;)&#x27;:&#x27;&#x27;}
+function fmtNum(n,f){n=Math.floor(n); return f===&#x27;comma&#x27;?String(n).replace(/\B(?=(\d{3})+(?!\d))/g,&#x27;,&#x27;):String(n)}
+
+// ---------- runs / lines ----------
+function runHtml(r){
+  if(typeof r===&#x27;string&#x27;) r={t:r};
+  var c=r.c,b=r.b,sty=&#x27;&#x27;;
+  if(r.when&amp;&amp;r.then&amp;&amp;cond(r.when)){ if(r.then.c) c=r.then.c; if(r.then.b!=null) b=r.then.b; }
+  if(r.cursor){ var on=mod(V.__t,r.period||1.1)&lt;(r.on||0.6); return &#x27;&lt;span class=&quot;cur&quot; style=&quot;background:&#x27;+cc(c||&#x27;gr&#x27;)+&#x27;;opacity:&#x27;+(on?1:0)+&#x27;&quot;&gt;&lt;/span&gt;&#x27;; }
+  if(r.sw) return &#x27;&lt;i class=&quot;sw&quot; style=&quot;background:&#x27;+cc(r.sw)+&#x27;&quot;&gt;&lt;/i&gt;&#x27;;
+  var txt;
+  if(r.v){ var v=V[r.v]; if(v==null) v=&#x27;&#x27;; if(typeof v===&#x27;object&#x27;){ txt=v.text; if(!c&amp;&amp;v.c) c=v.c; if(b==null&amp;&amp;v.b!=null) b=v.b; } else txt=String(v); }
+  else txt=fill(r.t==null?&#x27;&#x27;:r.t);
+  if(c) sty+=&#x27;color:&#x27;+cc(c)+&#x27;;&#x27;;
+  if(b) sty+=&#x27;font-weight:700;&#x27;;
+  if(r.size) sty+=&#x27;font-size:&#x27;+r.size+&#x27;px;&#x27;;
+  return sty?&#x27;&lt;span style=&quot;&#x27;+sty+&#x27;&quot;&gt;&#x27;+esc(txt)+&#x27;&lt;/span&gt;&#x27;:esc(txt);
+}
+function runsHtml(rs){return (rs||[]).map(runHtml).join(&#x27;&#x27;)}
+function barHtml(b){
+  var segs, mark=b.mark, w=b.w||127, h=b.h||20;
+  if(b.gauge){ var n=V[b.gauge+&#x27;.num&#x27;], low=V[b.gauge+&#x27;.low&#x27;]===&#x27;1&#x27;, c=low?(b.low||&#x27;cy&#x27;):(b.high||&#x27;gr&#x27;);
+    segs=[{from:0,to:n,c:c,end:true}]; }
+  else if(b.segments) segs=b.segments; else segs=[{from:0,to:b.fixed,c:b.c||&#x27;cy&#x27;}];
+  var out=&#x27;&lt;span class=&quot;bar&quot; style=&quot;width:&#x27;+w+&#x27;px;height:&#x27;+h+&#x27;px&quot;&gt;&#x27;;
+  segs.forEach(function(s){ out+=&#x27;&lt;u class=&quot;&#x27;+(s.end?&#x27;end&#x27;:&#x27;&#x27;)+&#x27;&quot; style=&quot;left:&#x27;+(s.from*100)+&#x27;%;width:&#x27;+((s.to-s.from)*100)+&#x27;%;background:&#x27;+cc(s.c)+&#x27;&quot;&gt;&lt;/u&gt;&#x27;; });
+  if(mark!=null) out+=&#x27;&lt;s style=&quot;left:&#x27;+(mark*100)+&#x27;%&quot;&gt;&lt;/s&gt;&#x27;;
+  return out+&#x27;&lt;/span&gt;&#x27;;
+}
+function normLine(l,mach){
+  if(typeof l===&#x27;string&#x27;) l={runs:[l]};
+  if(l.trigger){ // sugar: a trigger-point row bound to a triggers machine
+    var m=cfg.machines[l.trigger[0]], i=l.trigger[1], hl=m.hl||&#x27;hl&#x27;, col=m.color||&#x27;pu&#x27;;
+    l=Object.assign({align:&#x27;left&#x27;,indent:l.indent==null?13:l.indent,runs:[{v:l.trigger[0]+&#x27;.label&#x27;+i,c:&#x27;dim&#x27;,when:{&#x27;var&#x27;:l.trigger[0]+&#x27;.active&#x27;,eq:i},then:{c:col,b:1}}],
+      when:{&#x27;var&#x27;:l.trigger[0]+&#x27;.active&#x27;,eq:i},then:{bg:hl,c:col,b:1}},l);
+  }
+  if(l.t!=null&amp;&amp;!l.runs&amp;&amp;!l.items) l.runs=[{t:l.t}];
+  return l;
+}
+function addLine(parent,l,boxAlign){
+  l=normLine(l);
+  var d=document.createElement(&#x27;div&#x27;); d.className=&#x27;ln&#x27;+(l.items?&#x27; flex&#x27;:&#x27;&#x27;);
+  var al=l.align||boxAlign||&#x27;center&#x27;;
+  d.style.textAlign=al;
+  if(l.indent) d.style.paddingLeft=l.indent+&#x27;px&#x27;;
+  if(l.h) d.style.height=(l.h*LH)+&#x27;px&#x27;;
+  if(l.size) d.style.fontSize=l.size+&#x27;px&#x27;;
+  if(l.c) d.style.color=cc(l.c);
+  if(l.b) d.style.fontWeight=700;
+  if(l.inset) { d.style.marginLeft=l.inset+&#x27;px&#x27;; }
+  parent.appendChild(d);
+  var empty=!l.items&amp;&amp;(!l.runs||(l.runs.length===1&amp;&amp;l.runs[0]===&#x27;&#x27;));
+  if(l.items){
+    d.style.gap=(l.gap||0)+&#x27;px&#x27;;
+    l.items.forEach(function(it){
+      var e=document.createElement(&#x27;div&#x27;); e.setAttribute(&#x27;data-t&#x27;,&#x27;text&#x27;);
+      if(it.w) e.style.flex=&#x27;0 0 &#x27;+it.w+&#x27;px&#x27;; else if(it.grow) e.style.flex=&#x27;1 1 0&#x27;; else e.style.flex=&#x27;0 0 auto&#x27;;
+      if(it.ml) e.style.marginLeft=it.ml;
+      e.style.textAlign=it.align||&#x27;left&#x27;; if(it.size) e.style.fontSize=it.size+&#x27;px&#x27;;
+      d.appendChild(e);
+      DYN.push({el:e,fn:function(){return it.bar?barHtml(it.bar):runsHtml(it.runs)},last:null,chk:it.bar?&#x27;bar&#x27;:&#x27;text&#x27;});
+    });
+    DYN.push({el:d,fn:function(){return null},cls:function(){return lineStyle(l)},last:null});
+  } else {
+    if(!empty) d.setAttribute(&#x27;data-t&#x27;,&#x27;text&#x27;);
+    DYN.push({el:d,fn:function(){return runsHtml(l.runs)},cls:function(){return lineStyle(l)},last:null});
+  }
+  return d;
+}
+function lineStyle(l){ // line-level when/then: background / colour / weight
+  if(l.when&amp;&amp;l.then&amp;&amp;cond(l.when)) return {bg:l.then.bg?cc(l.then.bg):&#x27;&#x27;,c:l.then.c?cc(l.then.c):&#x27;&#x27;,b:l.then.b?&#x27;700&#x27;:&#x27;&#x27;};
+  return {bg:&#x27;&#x27;,c:l.c?cc(l.c):&#x27;&#x27;,b:l.b?&#x27;700&#x27;:&#x27;&#x27;};
+}
+function applyDyn(){
+  DYN.forEach(function(d){
+    var h=d.fn(); if(h!==null&amp;&amp;h!==d.last){ d.el.innerHTML=h; d.last=h; }
+    if(d.cls){ var s=d.cls(), k=s.bg+&#x27;|&#x27;+s.c+&#x27;|&#x27;+s.b; if(k!==d.lk){ d.el.style.background=s.bg; d.el.style.color=s.c||&#x27;&#x27;; d.el.style.fontWeight=s.b; d.lk=k; } }
+  });
+}
+
+// ---------- packets ----------
+function mkpk(color,small){var e=document.createElement(&#x27;div&#x27;); e.className=&#x27;pk&#x27;+(small?&#x27; s&#x27;:&#x27;&#x27;); var col=cc(color)||color; e.style.background=col;
+  var sz=(TH.packetSize||12)*(small?0.5:1); e.style.width=e.style.height=sz+&#x27;px&#x27;; e.style.margin=(-sz/2)+&#x27;px 0 0 &#x27;+(-sz/2)+&#x27;px&#x27;;
+  if(TH.glow) e.style.boxShadow=&#x27;0 0 &#x27;+(small?3:8)+&#x27;px &#x27;+col; ST.appendChild(e); return e}
+function prepPath(P){P.len=0;P.seg=[];for(var i=1;i&lt;P.path.length;i++){var d=Math.abs(P.path[i][0]-P.path[i-1][0])+Math.abs(P.path[i][1]-P.path[i-1][1]);P.seg.push(d);P.len+=d}}
+function atPath(P,d){if(d&lt;0||d&gt;P.len)return null;for(var i=0;i&lt;P.seg.length;i++){if(d&lt;=P.seg[i]){var a=P.path[i],b=P.path[i+1],f=P.seg[i]?d/P.seg[i]:0;return [a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f]}d-=P.seg[i]}return P.path[P.path.length-1]}
+function putPk(e,P,d){var q=atPath(P,d); if(!q||(P.gap&amp;&amp;q[1]&gt;P.gap[0]&amp;&amp;q[1]&lt;P.gap[1])){e.style.display=&#x27;none&#x27;;return} e.style.display=&#x27;block&#x27;;e.style.left=q[0]+&#x27;px&#x27;;e.style.top=q[1]+&#x27;px&#x27;}
+
+// ---------- machines (each is a pure function of t) ----------
+function pickIdx(m,k){var n=m.values.length,b=Math.floor(hash(m.seed||1,k)*n); if(n&gt;1&amp;&amp;b===Math.floor(hash(m.seed||1,k-1)*n)) b=(b+1)%n; return b}
+var MK={
+ counter:function(id,m){return {vars:function(t){V[id]=(m.prefix||&#x27;&#x27;)+fmtNum((m.start||0)+(m.rate||0)*t,m.format)+(m.suffix||&#x27;&#x27;)},events:function(){return []}}},
+ cycle:function(id,m){
+  var n=m.values.length;
+  function idx(j){return m.order?m.order[mod(j,m.order.length)]:mod(j,n)}
+  function val(j){var v=m.values[idx(j)]; return typeof v===&#x27;object&#x27;?v:{t:v}}
+  return {vars:function(t){var j=Math.floor((t-(m.t0||0))/m.period), v=val(j); V[id]=v.t!=null?v.t:(v.m||&#x27;&#x27;); V[id+&#x27;.i&#x27;]=String(idx(j));
+     Object.keys(v).forEach(function(k){V[id+&#x27;.&#x27;+k]=String(v[k])})},
+   events:function(lo,hi){var o=[]; if(!m.log) return o; for(var j=Math.floor((lo-(m.t0||0))/m.period);j&lt;=Math.ceil((hi-(m.t0||0))/m.period);j++){var v=val(j); o.push({t:(m.t0||0)+j*m.period,who:m.log.who,c:m.log.c,m:v.m!=null?v.m:(v.t||&#x27;&#x27;),g:v.g||&#x27;&#x27;})} return o}}},
+ gauge:function(id,m){
+  var th=m.threshold, dec=m.decimals==null?2:m.decimals;
+  function st(k){var v=m.values[pickIdx(m,k)], low=v&lt;th, L=low?(m.low||{}):(m.high||{}); return {v:v,low:low,label:L.label||&#x27;&#x27;,dest:L.dest||&#x27;&#x27;}}
+  return {vars:function(t){var k=Math.floor((t-(m.t0||0))/m.period), s=st(k);
+     V[id]=s.v.toFixed(dec); V[id+&#x27;.num&#x27;]=s.v; V[id+&#x27;.low&#x27;]=s.low?&#x27;1&#x27;:&#x27;&#x27;; V[id+&#x27;.label&#x27;]={text:s.label,c:s.low?(m.lowColor||&#x27;cy&#x27;):(m.highColor||&#x27;gr&#x27;),b:s.low?1:0}; V[id+&#x27;.dest&#x27;]=s.dest},
+   events:function(lo,hi){var o=[]; if(!m.log) return o; for(var k=Math.floor((lo-(m.t0||0))/m.period);k&lt;=Math.ceil((hi-(m.t0||0))/m.period);k++){var s=st(k),sc={value:s.v.toFixed(dec),label:s.label,dest:s.dest};
+     var f=function(x){return String(x).replace(/\{(\w+)\}/g,function(a,b){return sc[b]!=null?sc[b]:a})};
+     o.push({t:(m.t0||0)+k*m.period,who:m.log.who,c:m.log.c,m:m.log.msgs[mod(k,m.log.msgs.length)],g:f(m.log.tail||&#x27;&#x27;)})} return o}}},
+ any_low:function(id,m){return {vars:function(){V[id]=m.of.some(function(g){return V[g+&#x27;.low&#x27;]===&#x27;1&#x27;})?&#x27;low&#x27;:&#x27;high&#x27;},events:function(){return []}}},
+ lane:function(id,m){
+  var sp=m.spin||[&#x27;◐&#x27;,&#x27;◓&#x27;,&#x27;◑&#x27;,&#x27;◒&#x27;];
+  return {vars:function(t){var c=Math.floor((t-m.off)/m.period), p=(t-m.off)-c*m.period, run=p&lt;m.run;
+     if(run) V[id]={text:sp[mod(Math.floor(t/(m.spinStep||0.3))+(m.phase||0),sp.length)]+&#x27; &#x27;+m.busy,c:m.busyColor||&#x27;bl&#x27;};
+     else V[id]={text:&#x27;✓ &#x27;+m.done[mod(c,m.done.length)],c:m.doneColor||&#x27;gr&#x27;};
+     V[id+&#x27;.state&#x27;]=run?&#x27;busy&#x27;:&#x27;done&#x27;},
+   events:function(lo,hi){var o=[]; if(!m.log) return o; for(var c=Math.floor((lo-m.off)/m.period);c&lt;=Math.ceil((hi-m.off)/m.period);c++){var e=m.log.msgs[mod(c,m.log.msgs.length)]; o.push({t:m.off+c*m.period+m.run,who:m.log.who,c:m.log.c,m:e[0],g:e[1]||&#x27;&#x27;})} return o}}},
+ triggers:function(id,m){
+  var it=m.items, n=it.length, cps=m.cps||9;
+  return {vars:function(t){var k=Math.floor((t-m.t0)/m.period), ph=(t-m.t0)-k*m.period, on=ph&lt;m.on, cur=mod(k,n), I=it[cur];
+     V[id+&#x27;.active&#x27;]=on?String(cur):&#x27;-1&#x27;; V[id+&#x27;.cur&#x27;]=String(cur); V[id+&#x27;.phase&#x27;]=ph;
+     Object.keys(I).forEach(function(f){ if(typeof I[f]!==&#x27;object&#x27;) V[id+&#x27;.&#x27;+f]=String(I[f]) });
+     for(var i=0;i&lt;n;i++) V[id+&#x27;.label&#x27;+i]=(on&amp;&amp;i===cur?&#x27;◆ &#x27;:&#x27;◇ &#x27;)+it[i].name;
+     V[id+&#x27;.calls&#x27;]=String(k+(m.callsStart==null?1:m.callsStart));
+     var tk=m.tokens||{start:0,step:0}; V[id+&#x27;.tokens&#x27;]=fmtNum(tk.start+k*tk.step)+(tk.unit||&#x27;&#x27;);
+     var q=on?Math.max(0,Math.floor((ph-0.35)*cps)):99999, a0=I.adv[0],a1=I.adv[1]||&#x27;&#x27;;
+     V[id+&#x27;.adv0&#x27;]=a0.slice(0,q); V[id+&#x27;.adv1&#x27;]=q&gt;a0.length+2?a1.slice(0,q-a0.length-2):&#x27;&#x27;;
+     V[id+&#x27;.status&#x27;]={text:on?(m.onText||&#x27;advising&#x27;):(m.offText||&#x27;on call&#x27;),c:m.color||&#x27;pu&#x27;,b:1};
+   },
+   events:function(lo,hi){var o=[]; if(!m.log) return o; for(var k=Math.floor((lo-m.t0)/m.period);k&lt;=Math.ceil((hi-m.t0)/m.period);k++){var I=it[mod(k,n)];
+     var f=function(x){return String(x).replace(/\{(\w+)\}/g,function(a,b){return I[b]!=null?I[b]:a})};
+     o.push({t:m.t0+k*m.period,who:m.log.who,c:m.log.c,m:f(m.log.start.m),g:f(m.log.start.g||&#x27;&#x27;)});
+     o.push({t:m.t0+k*m.period+m.on,who:m.log.who,c:m.log.c,m:f(m.log.end.m),g:f(m.log.end.g||&#x27;&#x27;)})} return o}}}
+};
+
+// ---------- element builders ----------
+function place(d,e){ if(e.x!=null) d.style.left=e.x+&#x27;px&#x27;; if(e.y!=null) d.style.top=e.y+&#x27;px&#x27;; if(e.w!=null) d.style.width=e.w+&#x27;px&#x27;; if(e.h!=null) d.style.height=e.h+&#x27;px&#x27;; }
+var B={
+ text:function(e){
+  var size=e.size||FS, lh=e.lh||(e.size?Math.round(e.size*1.4):LH), d=document.createElement(&#x27;div&#x27;);
+  d.style.left=e.x+&#x27;px&#x27;; d.style.top=(e.y-lh/2)+&#x27;px&#x27;; if(e.w!=null) d.style.width=e.w+&#x27;px&#x27;; d.style.height=lh+&#x27;px&#x27;; d.style.lineHeight=lh+&#x27;px&#x27;;
+  d.style.textAlign=e.align||&#x27;left&#x27;; if(e.size) d.style.fontSize=size+&#x27;px&#x27;; if(e.c) d.style.color=cc(e.c); if(e.b) d.style.fontWeight=700; if(e.ls) d.style.letterSpacing=e.ls+&#x27;px&#x27;; if(e.font) d.style.fontFamily=e.font;
+  d.setAttribute(&#x27;data-t&#x27;,&#x27;text&#x27;); if(e.noCheck) d.setAttribute(&#x27;data-nocheck&#x27;,&#x27;1&#x27;); if(e.inside) d.setAttribute(&#x27;data-in&#x27;,&#x27;1&#x27;);
+  var runs=e.runs||[{t:e.t!=null?e.t:e.text}];
+  DYN.push({el:d,fn:function(){return runsHtml(runs)},last:null}); ST.appendChild(d);
+ },
+ box:function(e){
+  var d=document.createElement(&#x27;div&#x27;), solid=(e.sides||TH.boxMode)===&#x27;solid&#x27;;
+  d.className=&#x27;box&#x27;+(solid?&#x27; solid&#x27;:&#x27;&#x27;)+(e.dash?&#x27; dashed&#x27;:&#x27;&#x27;); place(d,e); d.style.color=cc(e.color||&#x27;fg&#x27;);
+  if(e.radius!=null) d.style.borderRadius=e.radius+&#x27;px&#x27;; if(e.border!=null) d.style.setProperty(&#x27;--bw&#x27;,e.border+&#x27;px&#x27;);
+  if(e.fill) d.style.background=cc(e.fill);
+  var p=e.pad||[10,14,14]; d.style.padding=p[0]+&#x27;px &#x27;+(p[2]==null?p[1]:p[2])+&#x27;px 0 &#x27;+p[1]+&#x27;px&#x27;;
+  d.setAttribute(&#x27;data-t&#x27;,e.container?&#x27;frame&#x27;:&#x27;box&#x27;); ST.appendChild(d);
+  (e.lines||[]).forEach(function(l){addLine(d,l,e.align)});
+  if(e.when&amp;&amp;e.then) BOXES.push({el:d,e:e,last:null});
+ },
+ path:function(e){ // polyline (optionally with rounded corners) with an arrow head; may carry packets and change colour on a condition
+  var NS=&#x27;http://www.w3.org/2000/svg&#x27;, pts=e.points, r=e.r||0, svg=document.createElementNS(NS,&#x27;svg&#x27;);
+  svg.setAttribute(&#x27;width&#x27;,CW); svg.setAttribute(&#x27;height&#x27;,CH); svg.style.cssText=&#x27;left:0;top:0;overflow:visible;pointer-events:none&#x27;;
+  var dd=&#x27;M&#x27;+pts[0][0]+&#x27; &#x27;+pts[0][1];
+  for(var i=1;i&lt;pts.length;i++){ var a=pts[i-1],b=pts[i],c=pts[i+1];
+    if(r&amp;&amp;c){ var l1=Math.hypot(b[0]-a[0],b[1]-a[1]), l2=Math.hypot(c[0]-b[0],c[1]-b[1]), rr=Math.min(r,l1/2,l2/2);
+      dd+=&#x27; L&#x27;+(b[0]-(b[0]-a[0])/l1*rr)+&#x27; &#x27;+(b[1]-(b[1]-a[1])/l1*rr)+&#x27; Q&#x27;+b[0]+&#x27; &#x27;+b[1]+&#x27; &#x27;+(b[0]+(c[0]-b[0])/l2*rr)+&#x27; &#x27;+(b[1]+(c[1]-b[1])/l2*rr); }
+    else dd+=&#x27; L&#x27;+b[0]+&#x27; &#x27;+b[1]; }
+  var pa=document.createElementNS(NS,&#x27;path&#x27;); pa.setAttribute(&#x27;d&#x27;,dd); pa.setAttribute(&#x27;fill&#x27;,&#x27;none&#x27;); pa.setAttribute(&#x27;stroke-linecap&#x27;,&#x27;round&#x27;); pa.setAttribute(&#x27;stroke-linejoin&#x27;,&#x27;round&#x27;);
+  if(e.dash) pa.setAttribute(&#x27;stroke-dasharray&#x27;,e.dash===true?&#x27;6 5&#x27;:e.dash); svg.appendChild(pa);
+  var hd=null; if(e.arrow!==false){ hd=document.createElementNS(NS,&#x27;polygon&#x27;); svg.appendChild(hd); }
+  var P={e:e,pa:pa,hd:hd,last:null}; PATHS.push(P);
+  function head(from,to,sz){ var dx=to[0]-from[0],dy=to[1]-from[1],L=Math.hypot(dx,dy)||1; dx/=L; dy/=L; var bx=to[0]-dx*sz,by=to[1]-dy*sz;
+    return to[0]+&#x27;,&#x27;+to[1]+&#x27; &#x27;+(bx-dy*sz*0.5)+&#x27;,&#x27;+(by+dx*sz*0.5)+&#x27; &#x27;+(bx+dy*sz*0.5)+&#x27;,&#x27;+(by-dx*sz*0.5); }
+  P.headPts=hd?head(pts[pts.length-2],pts[pts.length-1],e.head||9):null;
+  ST.appendChild(svg);
+  if(e.flow) B.flow(Object.assign({color:e.color,path:pts},e.flow));
+ },
+ line:function(e){ // axis-aligned wire from [x1,y1] to [x2,y2]
+  var a=e.from,b=e.to,w=e.width||TH.wireWidth||2,d=document.createElement(&#x27;div&#x27;);
+  d.className=e.dash?(a[0]===b[0]?&#x27;dashv&#x27;:&#x27;dashh&#x27;):&#x27;wire&#x27;;
+  if(a[0]===b[0]){d.style.left=(a[0]-w/2)+&#x27;px&#x27;;d.style.top=Math.min(a[1],b[1])+&#x27;px&#x27;;d.style.width=w+&#x27;px&#x27;;d.style.height=Math.abs(b[1]-a[1])+&#x27;px&#x27;}
+  else{d.style.top=(a[1]-w/2)+&#x27;px&#x27;;d.style.left=Math.min(a[0],b[0])+&#x27;px&#x27;;d.style.height=w+&#x27;px&#x27;;d.style.width=Math.abs(b[0]-a[0])+&#x27;px&#x27;}
+  if(e.color) { d.style.background=cc(e.color); }
+  ST.appendChild(d);
+ },
+ glyph:function(e){
+  var s=e.size||17,d=document.createElement(&#x27;div&#x27;); d.className=&#x27;glyph&#x27;; d.style.fontSize=s+&#x27;px&#x27;; d.style.width=&#x27;24px&#x27;; d.style.height=s+&#x27;px&#x27;;
+  d.style.left=(e.x-12)+&#x27;px&#x27;; d.style.top=(e.y-s/2)+&#x27;px&#x27;; d.style.color=cc(e.c||&#x27;dim&#x27;); d.textContent=e.ch||&#x27;▼&#x27;; ST.appendChild(d);
+ },
+ rule:function(e){var d=document.createElement(&#x27;div&#x27;); d.style.left=e.x+&#x27;px&#x27;; d.style.top=e.y+&#x27;px&#x27;; d.style.width=e.w+&#x27;px&#x27;; d.style.height=&#x27;5px&#x27;; d.style.borderTop=&#x27;1px solid &#x27;+cc(e.c||&#x27;line&#x27;); d.style.borderBottom=d.style.borderTop; ST.appendChild(d)},
+ flow:function(e){
+  var P=Object.assign({},e); prepPath(P); P.when=e.when; P.o=e.offsets||[0]; P.tail=e.tail==null?15:e.tail;
+  P.el=P.o.map(function(){return [mkpk(e.color,false),mkpk(e.color,true)]}); PK.push(P);
+ },
+ tarrow:function(e){ // dashed arrow from a trigger row to its target; colours up and carries a packet while that trigger is active
+  var m=e.machine, i=e.i, x1=e.from[0], y=e.from[1], x2=e.to[0], head=e.head||&#x27;▶&#x27;, hs=17;
+  var ln=document.createElement(&#x27;div&#x27;); ln.className=&#x27;tarrow&#x27;; ln.style.left=x1+&#x27;px&#x27;; ln.style.top=(y-1)+&#x27;px&#x27;; ln.style.width=Math.max(0,x2-x1-8)+&#x27;px&#x27;; ST.appendChild(ln);
+  var hd=document.createElement(&#x27;div&#x27;); hd.className=&#x27;glyph&#x27;; hd.style.fontSize=hs+&#x27;px&#x27;; hd.style.width=&#x27;20px&#x27;; hd.style.height=hs+&#x27;px&#x27;; hd.style.left=(x2-18)+&#x27;px&#x27;; hd.style.top=(y-hs/2)+&#x27;px&#x27;; hd.textContent=head; ST.appendChild(hd);
+  var P={path:[[x1,y],[x2-8,y]]}; prepPath(P); P.el=[mkpk(e.packet||cfg.machines[m].color||&#x27;pu&#x27;,false),mkpk(e.packet||cfg.machines[m].color||&#x27;pu&#x27;,true)];
+  var col=cc(cfg.machines[m].color||&#x27;pu&#x27;);
+  DYN.push({el:ln,fn:function(){return null},cls:function(){return {bg:&#x27;&#x27;,c:&#x27;&#x27;,b:&#x27;&#x27;}},last:null});
+  TA.push({ln:ln,hd:hd,P:P,m:m,i:i,col:col});
+ },
+ log:function(e){
+  var rows=e.rows||4, h=rows*LH+(e.padBottom==null?16:e.padBottom), x=e.x, y=e.y, w=e.w;
+  var fr=document.createElement(&#x27;div&#x27;); fr.className=&#x27;logframe&#x27;; fr.style.left=x+&#x27;px&#x27;; fr.style.top=y+&#x27;px&#x27;; fr.style.width=w+&#x27;px&#x27;; fr.style.height=h+&#x27;px&#x27;; fr.setAttribute(&#x27;data-t&#x27;,&#x27;frame&#x27;); ST.appendChild(fr);
+  var tx=e.titleX||60, tw=e.titleW||180;
+  [[x,tx],[x+tx+tw,w-tx-tw]].forEach(function(s){var t=document.createElement(&#x27;div&#x27;); t.className=&#x27;logtop&#x27;; t.style.left=s[0]+&#x27;px&#x27;; t.style.top=y+&#x27;px&#x27;; t.style.width=s[1]+&#x27;px&#x27;; ST.appendChild(t)});
+  [x+tx,x+tx+tw].forEach(function(px){var t=document.createElement(&#x27;div&#x27;); t.className=&#x27;wire&#x27;; t.style.background=&#x27;var(--c-line2,#3a4154)&#x27;; t.style.left=px+&#x27;px&#x27;; t.style.top=(y-10)+&#x27;px&#x27;; t.style.width=&#x27;2px&#x27;; t.style.height=&#x27;20px&#x27;; ST.appendChild(t)});
+  var lab=document.createElement(&#x27;div&#x27;); lab.style.left=(x+tx+18)+&#x27;px&#x27;; lab.style.top=(y-LH/2)+&#x27;px&#x27;; lab.style.height=LH+&#x27;px&#x27;; lab.style.color=cc(&#x27;dim&#x27;); lab.textContent=e.title||&#x27;log&#x27;; lab.setAttribute(&#x27;data-t&#x27;,&#x27;text&#x27;); ST.appendChild(lab);
+  LOG={rows:[],cols:e.cols,clock:cfg.clock||{start:&#x27;00:00:00&#x27;,rate:1}};
+  for(var i=0;i&lt;rows;i++){ var r=document.createElement(&#x27;div&#x27;); r.className=&#x27;lgrow&#x27;; r.style.left=(x+(e.padLeft==null?20:e.padLeft))+&#x27;px&#x27;; r.style.top=(y+(e.padTop==null?8:e.padTop)+i*LH)+&#x27;px&#x27;; r.style.height=LH+&#x27;px&#x27;; r.style.width=(w-30)+&#x27;px&#x27;; ST.appendChild(r);
+   var cells=e.cols.map(function(c){var s=document.createElement(&#x27;span&#x27;); s.style.left=c.x+&#x27;px&#x27;; s.style.height=LH+&#x27;px&#x27;; s.setAttribute(&#x27;data-t&#x27;,&#x27;text&#x27;); r.appendChild(s); return s});
+   LOG.rows.push({el:r,cells:cells,last:null}); }
+ }
+};
+var TA=[], LOG=null, BOXES=[], PATHS=[], TH={};
+function clockStr(t){var p=LOG.clock.start.split(&#x27;:&#x27;).map(Number), s=Math.floor(p[0]*3600+p[1]*60+p[2]+t*LOG.clock.rate); s=mod(s,86400); var z=function(n){return (n&lt;10?&#x27;0&#x27;:&#x27;&#x27;)+n}; return z(Math.floor(s/3600))+&#x27;:&#x27;+z(Math.floor(s/60)%60)+&#x27;:&#x27;+z(s%60)}
+function renderLog(t){
+  if(!LOG) return;
+  var last=-1; for(var i=0;i&lt;EVT.length;i++){ if(EVT[i].t&lt;=t) last=i; else break; }
+  var n=LOG.rows.length;
+  LOG.rows.forEach(function(R,i){ var ev=EVT[last-(n-1)+i], isNew=(i===n-1), key=ev?(ev.t+&#x27;|&#x27;+ev.m+&#x27;|&#x27;+isNew):&#x27;&#x27;;
+    if(key===R.last) return; R.last=key;
+    LOG.cols.forEach(function(c,ci){ var s=R.cells[ci], txt=&#x27;&#x27;, col=&#x27;dim&#x27;, bold=false, op=1;
+      if(ev){ if(c.key===&#x27;time&#x27;) txt=clockStr(ev.t);
+        else if(c.key===&#x27;who&#x27;){ txt=ev.who; col=ev.c; bold=true; op=isNew?1:.8; }
+        else if(c.key===&#x27;m&#x27;){ txt=ev.m; if(isNew){col=&#x27;fg&#x27;;bold=true} }
+        else if(c.key===&#x27;g&#x27;){ txt=ev.g; if(isNew){col=&#x27;fg&#x27;;bold=true} } }
+      s.textContent=txt; s.style.color=cc(col); s.style.fontWeight=bold?700:400; s.style.opacity=op; });
+  });
+}
+
+function styleBoxes(){ BOXES.forEach(function(B_){ var e=B_.e, on=cond(e.when), th=on?e.then:{}, k=on?&#x27;1&#x27;:&#x27;0&#x27;; if(k===B_.last) return; B_.last=k;
+  var el=B_.el; el.style.background=cc(th.fill||e.fill)||&#x27;&#x27;; el.style.color=cc(th.color||e.color||&#x27;fg&#x27;);
+  el.style.setProperty(&#x27;--bw&#x27;,(th.border!=null?th.border:(e.border!=null?e.border:(TH.borderWidth||2)))+&#x27;px&#x27;);
+  el.style.boxShadow=th.glow?&#x27;0 0 0 4px color-mix(in srgb, &#x27;+cc(th.glow)+&#x27; 30%, transparent), 0 0 16px color-mix(in srgb, &#x27;+cc(th.glow)+&#x27; 55%, transparent)&#x27;:&#x27;&#x27;; }); }
+function stylePaths(){ PATHS.forEach(function(P){ var e=P.e, on=e.when&amp;&amp;cond(e.when), th=on?e.then:{}, k=on?&#x27;1&#x27;:&#x27;0&#x27;; if(k===P.last) return; P.last=k;
+  var col=cc(th.color||e.color||&#x27;line&#x27;), w=th.width||e.width||TH.wireWidth||2;
+  P.pa.setAttribute(&#x27;stroke&#x27;,col); P.pa.setAttribute(&#x27;stroke-width&#x27;,w); P.pa.style.opacity=th.opacity!=null?th.opacity:(e.opacity!=null?e.opacity:1);
+  if(P.hd){ P.hd.setAttribute(&#x27;fill&#x27;,col); P.hd.setAttribute(&#x27;points&#x27;,P.headPts); P.hd.style.opacity=P.pa.style.opacity; } }); }
+
+// ---------- the one entry point ----------
+window.seek=function(t){
+  if(!window.__ready){ window.__pending=t; return; }
+  try{
+    V.__t=t;
+    MACH.forEach(function(m){m.vars(t)});
+    // packets on the main flow; count deliveries so &quot;the number on the graph&quot; is the number of packets that arrived
+    var sig=0;
+    PK.forEach(function(P){ if(P.when&amp;&amp;!cond(P.when)){ P.el.forEach(function(q){q[0].style.display=&#x27;none&#x27;;q[1].style.display=&#x27;none&#x27;}); return; } P.o.forEach(function(o,n){ var u=(t+PRE+o)/P.period, d=(u-Math.floor(u))*P.len; sig+=Math.floor(u); putPk(P.el[n][0],P,d); putPk(P.el[n][1],P,d-P.tail); }); });
+    V.packets=fmtNum(sig,&#x27;comma&#x27;);
+    V.clock=LOG?clockStr(t):&#x27;&#x27;;
+    TA.forEach(function(A){ var on=V[A.m+&#x27;.active&#x27;]===String(A.i);
+      A.ln.style.borderColor=on?A.col:&#x27;&#x27;; A.hd.style.color=on?A.col:&#x27;var(--c-dim)&#x27;;
+      if(on){ var ph=Number(V[A.m+&#x27;.phase&#x27;]), u=ph/0.9, d=(u-Math.floor(u))*(A.P.len+10); putPk(A.P.el[0],A.P,d); putPk(A.P.el[1],A.P,d-12); }
+      else { A.P.el[0].style.display=&#x27;none&#x27;; A.P.el[1].style.display=&#x27;none&#x27;; } });
+    styleBoxes(); stylePaths(); applyDyn(); renderLog(t);
+    window.__t=t;
+  }catch(e){fail(e)}
+};
+window.render=window.seek;
+
+// ---------- layout self-check (used by scripts/check_frames.py) ----------
+window.__check=function(){
+  var prob=[], items=[], boxes=[], sr=ST.getBoundingClientRect(), sc=sr.width/CW;
+  function R(rc){return {l:(rc.left-sr.left)/sc,t:(rc.top-sr.top)/sc,r:(rc.right-sr.left)/sc,b:(rc.bottom-sr.top)/sc}}
+  function contentRect(el){var g=document.createRange(); g.selectNodeContents(el); var rs=g.getClientRects(), o=null; for(var i=0;i&lt;rs.length;i++){var q=rs[i]; if(q.width&lt;0.5||q.height&lt;0.5) continue; if(!o) o={left:q.left,top:q.top,right:q.right,bottom:q.bottom}; else {o.left=Math.min(o.left,q.left);o.top=Math.min(o.top,q.top);o.right=Math.max(o.right,q.right);o.bottom=Math.max(o.bottom,q.bottom)}} return o}
+  var els=ST.querySelectorAll(&#x27;[data-t]&#x27;);
+  for(var i=0;i&lt;els.length;i++){ var el=els[i], k=el.getAttribute(&#x27;data-t&#x27;);
+    if(k===&#x27;box&#x27;||k===&#x27;frame&#x27;){ boxes.push({el:el,r:R(el.getBoundingClientRect()),k:k}); continue; }
+    if(el.getAttribute(&#x27;data-nocheck&#x27;)) continue;
+    var cr=contentRect(el); if(!cr) continue; var rr=R(cr); rr.el=el; rr.txt=el.textContent.trim().slice(0,28);
+    // a flex item holding a bar has no text range; use its box
+    items.push(rr); }
+  function ov(a,b){return Math.min(a.r,b.r)-Math.max(a.l,b.l)&gt;1.5&amp;&amp;Math.min(a.b,b.b)-Math.max(a.t,b.t)&gt;1.5}
+  // 1 text inside canvas
+  items.forEach(function(a){ if(a.l&lt;-0.5||a.t&lt;-0.5||a.r&gt;CW+0.5||a.b&gt;CH+0.5) prob.push(&#x27;outside canvas: &quot;&#x27;+a.txt+&#x27;&quot;&#x27;); });
+  // 2 text inside its own box
+  items.forEach(function(a){ var bx=boxes.filter(function(b){return b.el.contains(a.el)})[0];
+    if(bx){ var r=bx.r; if(a.l&lt;r.l+1||a.r&gt;r.r-1||a.t&lt;r.t-1||a.b&gt;r.b+1) prob.push(&#x27;text overflows its box: &quot;&#x27;+a.txt+&#x27;&quot; [&#x27;+Math.round(a.l)+&#x27;-&#x27;+Math.round(a.r)+&#x27;] box [&#x27;+Math.round(r.l)+&#x27;-&#x27;+Math.round(r.r)+&#x27;]&#x27;); } });
+  // 3 text vs text
+  for(var x=0;x&lt;items.length;x++)for(var y=x+1;y&lt;items.length;y++){ var a=items[x],b=items[y]; if(a.el.contains(b.el)||b.el.contains(a.el)) continue; if(ov(a,b)) prob.push(&#x27;text overlap: &quot;&#x27;+a.txt+&#x27;&quot; x &quot;&#x27;+b.txt+&#x27;&quot;&#x27;); }
+  // 4 text vs foreign boxes, box vs box
+  items.forEach(function(a){ boxes.forEach(function(b){ if(b.k===&#x27;frame&#x27;) return; if(b.el.contains(a.el)||a.el.getAttribute(&#x27;data-in&#x27;)) return; if(ov(a,b.r)) prob.push(&#x27;text over a box: &quot;&#x27;+a.txt+&#x27;&quot;&#x27;); }); });
+  for(var p=0;p&lt;boxes.length;p++)for(var q=p+1;q&lt;boxes.length;q++){ if(boxes[p].k===&#x27;frame&#x27;||boxes[q].k===&#x27;frame&#x27;) continue; if(ov(boxes[p].r,boxes[q].r)) prob.push(&#x27;box overlap: #&#x27;+p+&#x27; x #&#x27;+q); }
+  return prob;
+};
+
+// ---------- boot ----------
+function fit(){ var s=Math.min(innerWidth/CW,innerHeight/CH); ST.style.transform=&#x27;scale(&#x27;+s+&#x27;)&#x27;; ST.style.left=((innerWidth-CW*s)/2)+&#x27;px&#x27;; ST.style.top=((innerHeight-CH*s)/2)+&#x27;px&#x27;; }
+var CANVAS_PRESETS={&#x27;4:5&#x27;:[1200,1500],&#x27;3:4&#x27;:[1080,1440],&#x27;1:1&#x27;:[1080,1080]};
+var THEME_PRESETS={
+ &#x27;terminal-dark&#x27;:{font:&#x27;&quot;JetBrains Mono&quot;,&quot;IBM Plex Mono&quot;,&quot;DejaVu Sans Mono&quot;,&quot;Noto Sans Mono CJK SC&quot;,monospace&#x27;,fontSize:21,lineHeight:30,boxMode:&#x27;segmented&#x27;,
+   colors:{bg:&#x27;#14171c&#x27;,bar:&#x27;#262a32&#x27;,line:&#x27;#4a5367&#x27;,line2:&#x27;#3a4154&#x27;,dim:&#x27;#6f788c&#x27;,fg:&#x27;#e4e8f0&#x27;,wh:&#x27;#ffffff&#x27;,cy:&#x27;#86e1e6&#x27;,bl:&#x27;#8fb4f6&#x27;,gr:&#x27;#7fdba8&#x27;,pu:&#x27;#b9a2f2&#x27;,ye:&#x27;#e3c07a&#x27;,hl:&#x27;#302d45&#x27;,dots:&#x27;#566078&#x27;}},
+ &#x27;light-pastel&#x27;:{font:&#x27;&quot;Noto Sans CJK SC&quot;,&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,&quot;Helvetica Neue&quot;,Arial,sans-serif&#x27;,fontSize:17,lineHeight:24,boxMode:&#x27;solid&#x27;,radius:9,borderWidth:1.5,wireWidth:2.2,glow:true,packetSize:10,
+   colors:{bg:&#x27;#fcfcfb&#x27;,bar:&#x27;#f1f1ef&#x27;,line:&#x27;#2d3138&#x27;,line2:&#x27;#c9ccd1&#x27;,dim:&#x27;#7b828c&#x27;,fg:&#x27;#23272e&#x27;,wh:&#x27;#ffffff&#x27;,ink:&#x27;#111111&#x27;,
+     gn:&#x27;#6fb34f&#x27;,gnf:&#x27;#e7f4de&#x27;,bl:&#x27;#5f93e0&#x27;,blf:&#x27;#e4eefc&#x27;,blt:&#x27;#3a6fc8&#x27;,yl:&#x27;#e3b93d&#x27;,ylf:&#x27;#fff5d6&#x27;,or:&#x27;#e79a4c&#x27;,orf:&#x27;#fdeedc&#x27;,ort:&#x27;#d9731a&#x27;,
+     rd:&#x27;#e47b7b&#x27;,rdf:&#x27;#fde7e7&#x27;,rdt:&#x27;#d24a4a&#x27;,pu:&#x27;#b389d9&#x27;,puf:&#x27;#f2eafa&#x27;,put:&#x27;#7d4fb0&#x27;,mc:&#x27;#9a92d9&#x27;,mcf:&#x27;#eeebfa&#x27;,tl:&#x27;#5fbdb2&#x27;,tlf:&#x27;#e0f4f1&#x27;,
+     gy:&#x27;#b9bdc4&#x27;,gyf:&#x27;#f5f5f4&#x27;,pk:&#x27;#f0575f&#x27;,lit:&#x27;#fff1b8&#x27;}}
+};
+function mergeTheme(u){ var base=THEME_PRESETS[u.preset||&#x27;terminal-dark&#x27;]||THEME_PRESETS[&#x27;terminal-dark&#x27;], o=Object.assign({},base,u); o.colors=Object.assign({},base.colors,u.colors||{}); return o; }
+function boot(c){
+  cfg=c; var cv=Object.assign({},c.canvas||{}), th=mergeTheme(c.theme||{}); TH=th;
+  if(cv.preset&amp;&amp;CANVAS_PRESETS[cv.preset]){ cv.width=cv.width||CANVAS_PRESETS[cv.preset][0]; cv.height=cv.height||CANVAS_PRESETS[cv.preset][1]; }
+  CW=cv.width||1200; CH=cv.height||1500; PRE=cv.preroll||0; FS=th.fontSize||21; LH=th.lineHeight||30;
+  document.title=(c.meta&amp;&amp;c.meta.title)||&#x27;live-panel&#x27;; if(c.meta&amp;&amp;c.meta.lang) document.documentElement.lang=c.meta.lang;
+  var root=document.documentElement.style, cols=th.colors||{};
+  Object.keys(cols).forEach(function(k){root.setProperty(&#x27;--c-&#x27;+k,cols[k])});
+  root.setProperty(&#x27;--font&#x27;,th.font||&#x27;monospace&#x27;); root.setProperty(&#x27;--radius&#x27;,(th.radius||0)+&#x27;px&#x27;); root.setProperty(&#x27;--bw&#x27;,(th.borderWidth||2)+&#x27;px&#x27;); root.setProperty(&#x27;--fs&#x27;,FS+&#x27;px&#x27;); root.setProperty(&#x27;--lh&#x27;,LH+&#x27;px&#x27;);
+  ST.style.width=CW+&#x27;px&#x27;; ST.style.height=CH+&#x27;px&#x27;; ST.style.background=&#x27;var(--c-bg)&#x27;;
+  // machines
+  var M=c.machines||{}; Object.keys(M).forEach(function(id){ var m=M[id]; var f=MK[m.type]; if(!f) throw new Error(&#x27;unknown machine type &#x27;+m.type); MACH.push(f(id,m)); });
+  var lo=-120, hi=(cv.duration||60)+120; MACH.forEach(function(m){ EVT=EVT.concat(m.events(lo,hi)) });
+  // stable sort by time (ties keep config order)
+  EVT=EVT.map(function(e,i){e.__i=i;return e}).sort(function(a,b){return a.t-b.t||a.__i-b.__i});
+  // titlebar
+  if(c.titlebar){ var tb=c.titlebar, h=tb.height||38, d=document.createElement(&#x27;div&#x27;); d.className=&#x27;tb&#x27;; d.style.width=CW+&#x27;px&#x27;; d.style.height=h+&#x27;px&#x27;; d.style.lineHeight=h+&#x27;px&#x27;; d.style.fontSize=(tb.size||14)+&#x27;px&#x27;;
+    [[&#x27;#f2645a&#x27;,20],[&#x27;#f1bd3c&#x27;,42],[&#x27;#55c552&#x27;,64]].forEach(function(o){var i=document.createElement(&#x27;i&#x27;); i.style.left=(o[1]-7)+&#x27;px&#x27;; i.style.top=(h/2-7)+&#x27;px&#x27;; i.style.width=&#x27;14px&#x27;; i.style.height=&#x27;14px&#x27;; i.style.background=o[0]; d.appendChild(i)});
+    d.appendChild(document.createTextNode(tb.text||&#x27;&#x27;)); ST.appendChild(d); }
+  (c.elements||[]).forEach(function(e){ var f=B[e.type]; if(!f) throw new Error(&#x27;unknown element type &#x27;+e.type); f(e); });
+  if(c.credit){ B.text(Object.assign({type:&#x27;text&#x27;,x:0,w:CW,align:&#x27;center&#x27;,y:CH-14,size:12,c:&#x27;dim&#x27;},c.credit)); }
+  fit(); addEventListener(&#x27;resize&#x27;,fit);
+  var go=function(){ window.__ready=true; window.seek(window.__pending==null?0:window.__pending);
+    if(!/[?&amp;]manual/.test(location.search)){ var t0=performance.now(), D=cv.duration||30; (function loop(now){ window.seek(((now-t0)/1000)%D); requestAnimationFrame(loop); })(t0); } };
+  (document.fonts&amp;&amp;document.fonts.ready?document.fonts.ready:Promise.resolve()).then(go);
+}
+loadConfig().then(boot).catch(fail);
+})();
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;
+" style="width:100%;max-width:720px;aspect-ratio:4/5;border:1px solid var(--line);border-radius:12px;display:block;margin:6px auto 10px;background:#14171c"></iframe>
+
+
+<h2><span class="n">1</span>安装：一条命令进 Pi</h2>
+<p class="sub">pstack 就是一堆纯文本的 Agent Skill（<code>skills/&lt;name&gt;/SKILL.md</code>），不需要 Cursor。用官方 skills CLI 装进任何 agent：</p>
+<pre><span class="c"># 交互式：选 skill → 选 agent（Pi / Claude Code / Codex / OpenCode / Gemini CLI / Crush…）</span>
+<span class="k">npx</span> <span class="s">skills add deanyou/pstack</span>
+
+<span class="c"># 你的 Pi 派单方式（session-resume）：按任务挂 skill，可重复指定</span>
+<span class="k">~/workspace/pi/bin/pi-task</span> <span class="s">muse-fix-20261020</span> <span class="s">"修复 virtuoso-cli 的 X11 cookie bug"</span> \
+  <span class="k">--skill</span> ~/workspace/custom-connectors/custom.legacy-deepseek/dsh-home/skills/tdd \
+  <span class="k">--skill</span> ~/workspace/custom-connectors/custom.legacy-deepseek/dsh-home/skills/blast-radius</pre>
+<div class="note"><b>你的现状：</b>12 个核心 skill 已拷到 <code>~/workspace/custom-connectors/custom.legacy-deepseek/dsh-home/skills/</code>（拷的不是软链；拷时删掉了 frontmatter 里的 <code>disable-model-invocation: true</code>，headless 才能用）。版本上：你的 fork <code>deanyou/pstack</code> 已同步上游 <b>v0.15.29</b>，还多了自有提交（见下方"fork 增量"）；本机 <code>~/workspace/vendor/pstack</code> 镜像还停在 v0.15.28；dsh-home 里的 12 个副本仍是更早拷的，刷新方法不变：从 fork 重拷这 12 个 + 删那行 frontmatter。</div>
+
+<p class="sub" style="margin-top:28px"><b style="color:var(--txt)">你的 fork 在上游之外多了什么</b>——2026-10-21 的提交 <code>6f7bd80</code> 给整套 pstack 加了 harness 适配层，外加一个 Linux 修复。原版 pstack 是用 Cursor 的名字写的（工具名、路径、模型 slug 都是 Cursor 的说法），这层适配就是把它翻译给其他 harness 的机制：</p>
+<div class="grid">
+  <div class="card"><h3>docs/harness/ 适配文档</h3>
+    <p>8 份适配文档：<b>Claude Code / Codex / Pi / OpenCode / Gemini CLI / Crush / Cursor / generic</b>（兜底）。每份是一张对照表：工具名、文件路径、模型 slug 在这个 harness 里叫什么。其中 <b>pi.md 最长（167 行）</b>——正对你的主力 harness。</p>
+    <div class="trigger">位置：<code>docs/harness/README.md</code> 是索引</div></div>
+  <div class="card"><h3>scripts/harness-detect.sh</h3>
+    <p><b>检测脚本</b>：跑一下就知道当前在哪个 harness，输出 harness 名、对应 adapter 路径、pstack 该用的关键路径（支持 <code>--json</code> / <code>--export</code>）。识别顺序：<code>PSTACK_HARNESS</code> 环境变量 → <code>--harness</code> 参数 → 祖先进程 → 环境标记 → 工作树目录 → generic。<code>poteto-mode</code> 已改为引用它。</p>
+    <div class="trigger">用法：在 pstack 检出目录里跑 <code>scripts/harness-detect.sh</code></div></div>
+  <div class="card"><h3>模型配置：一处写、多处指</h3>
+    <p><code>setup-pstack</code> 第 6 步把模型角色表写到 <b><code>~/.agents/pstack-models.md</code></b>，各 harness 的常驻文件（always-loaded）里只放一行指针。换模型只改一处，所有 harness 跟着变。</p></div>
+  <div class="card"><h3>mirror-paths.txt 同步保护</h3>
+    <p>fork 自有文件登记在 <code>mirror-paths.txt</code> 里，<code>MIRROR.md</code> 的 rsync 同步上游时排除它们，<b>不被 <code>--delete</code> 误删</b>。这是 fork 能长期跟上游、又不丢自有改动的机制。</p></div>
+  <div class="card"><h3>GNU/Linux 修复（PR #1）</h3>
+    <p><code>poteto-mode</code> 的 <code>worktree-audit.sh</code> 原先在 GNU/Linux 上跑不了，fork 修好了。你在 Linux 上用，这是实打实的一条。</p></div>
+</div>
+
+<h2><span class="n">2</span>12 个 skill：按用途认领</h2>
+<p class="sub">每个 skill 都是一个独立的工作流说明书。agent 读到它，就按里面的步骤干活。</p>
+
+<div class="grid">
+  <div class="card"><h3>how <span class="tag t-understand">理解</span></h3>
+    <p>回答<b>"X 是怎么工作的"</b>。改代码前先做代码走读：子系统架构、运行时流程、归属/分层问题（"这该放哪层""哪个包拥有它"）。产出是资深工程师 onboarding 级别的<b>心智模型</b>，不是注释版源码。</p>
+    <div class="trigger">触发：改动前先理解 · <code>"how does X work"</code> · <code>"where should this live"</code></div><div class="term" id="term-how"></div></div>
+  <div class="card"><h3>why <span class="tag t-understand">理解</span></h3>
+    <p>回答<b>"为什么长成这样"</b>。how 的搭档：how 讲代码做什么，why 讲什么力量把它塑造成这样。并行查证据（git、issue、文档、聊天记录、可观测性、错误追踪），<b>区分"我知道"和"我在推测"</b>，带置信度措辞输出。</p>
+    <div class="trigger">触发：设计依据 · <code>"why we picked Y"</code> · 回归复盘 · 阈值从哪来</div><div class="term" id="term-why"></div></div>
+  <div class="card"><h3>teach <span class="tag t-understand">理解</span></h3>
+    <p>把一坨工作<b>讲到人真懂</b>。跑一遍 how + why，再编织成按你节奏的 plain 讲解。目标是理解，不是改代码。适合接手陌生子系统。</p>
+    <div class="trigger">触发：<code>"teach me this"</code> · <code>"help me really understand X"</code></div><div class="term" id="term-teach"></div></div>
+  <div class="card"><h3>recall <span class="tag t-understand">理解</span></h3>
+    <p><b>开工前先重建上下文</b>：从聊天记录、实时状态和共享记录里拼出"现在到哪了、下一步是什么"的紧凑简报。别只看自己的 transcript——长 bug 尾巴的故事多半在别人的 issue 和聊天里。</p>
+    <div class="trigger">触发：<code>"where did I leave off"</code> · <code>"catch me up"</code></div><div class="term" id="term-recall"></div></div>
+  <div class="card"><h3>interrogate <span class="tag t-review">评审</span></h3>
+    <p><b>多模型对抗评审</b>：每个配置的模型拿同一份 prompt + rubric，从独立角度撕你的改动。对抗信号来自<b>模型多样性</b>，不是分配人设。产出是综合裁决，<b>不自动改代码</b>。</p>
+    <div class="trigger">触发：<code>"tear this apart"</code> · <code>"find blind spots"</code> · stress test</div><div class="term" id="term-interrogate"></div></div>
+  <div class="card"><h3>blast-radius <span class="tag t-review">评审</span></h3>
+    <p>找出<b>改动在 diff 之外会炸掉什么</b>。列调用方不算本事（grep 一秒的事），本事是找出 grep 看不见的 breakage。关键纪律：<b>别信自己的分析报告</b>——把结论依赖的一两个事实找出来，用<b>跑真代码</b>证明，而不是写下来。</p>
+    <div class="trigger">触发：<code>"what could this break"</code> · 评审不放心的小 diff</div><div class="term" id="term-blast"></div></div>
+  <div class="card"><h3>tdd <span class="tag t-discipline">工程纪律</span></h3>
+    <p><b>先让 bug 可执行</b>：有便宜的本地测试路径时，先写出"修前失败、修后通过"的聚焦回归测试再动生产代码。没便宜测试路径时<b>别硬造</b>——用最近的可用验证代替。</p>
+    <div class="trigger">触发：修 bug 且有明确便宜测试 · 回归测试</div><div class="term" id="term-tdd"></div></div>
+  <div class="card"><h3>principle-prove-it-works <span class="tag t-discipline">工程纪律</span></h3>
+    <p><b>收工前验实物</b>：对着真实产物验证，不认代理指标——不看"编译过了"、不看 agent 的自我报告。跑起来、走完真实路径、读实际值。验证失败先怀疑<b>观测方法</b>，再怀疑系统。</p>
+    <div class="trigger">触发：任何任务收尾 · 验收标准</div><div class="term" id="term-prove"></div></div>
+  <div class="card"><h3>show-me-your-work <span class="tag t-discipline">工程纪律</span></h3>
+    <p>长跑/无人值守任务留<b>可审计的决策轨迹</b>：一个 TSV，一行一个决策（时间、阶段、做了什么、为什么、证据指针、结果）。证据是 commit SHA、文件行号、产物路径，<b>不是段落</b>。</p>
+    <div class="trigger">触发：<code>/show-me-your-work</code> · 多阶段任务 · 离开后回来要能审计</div><div class="term" id="term-show"></div></div>
+  <div class="card"><h3>figure-it-out <span class="tag t-discipline">工程纪律</span></h3>
+    <p>没有现成 playbook 时<b>先设计 playbook 再动手</b>：大迁移、多部件改动。先给出可证伪的完成定义、量化 scope、定严谨度（宁高勿低），跑假设循环，全程记决策日志。</p>
+    <div class="trigger">触发：<code>"figure it out"</code> · 大迁移 · 无章可循的大改动</div><div class="term" id="term-figure"></div></div>
+  <div class="card"><h3>unslop <span class="tag t-write">写作</span></h3>
+    <p><b>删 AI 腔</b>：扫固定模式并重写——"delve / crucial / tapestry"类词汇、"serves as"式花哨 is、"Not just X, but Y"句式、硬凑三段式、"Experts believe"式模糊归因。保义、合语气。</p>
+    <div class="trigger">触发：任何对外文本 · 新功能交付默认挂上</div><div class="term" id="term-unslop"></div></div>
+  <div class="card"><h3>reflect <span class="tag t-reflect">反思</span></h3>
+    <p>只在你说 <code>reflect</code> 时用：起三个并行评审 agent 挖当前会话的<b> durable 教训</b>，每条教训落成对某个 skill 的<b>具体修改</b>。一次性经验不算教训，不写进去。</p>
+    <div class="trigger">触发：你亲口说 <code>reflect</code></div><div class="term" id="term-reflect"></div></div>
+</div>
+
+<div class="note"><b>注意依赖：</b>有些 skill 会调用别的 skill，走 skills CLI 单装时要连带（fork README 的安装表）：<code>why</code> → <code>how</code>；<code>teach</code> → <code>how</code> + <code>why</code>；<code>blast-radius</code> 遇到大改动会以 <code>arena</code> 模式跑（多模型同题、合并答案），连带 <code>arena / how / why / unslop</code>；<code>create-verification-skill</code> 与 <code>maintain-verification-skill</code> 成对。你 dsh-home 里那 12 个是整目录拷的，日常派单不受影响；只有单装时要注意。</div>
+
+<h2><span class="n">3</span>组合套路：按任务类型挂 skill</h2>
+<p class="sub">别一次全挂 12 个（context 膨胀）。你的 pi 派单已按任务类型固化组合：</p>
+<div class="flow">
+  <div class="frow"><div class="task">🐛 Bug 修复</div><div class="combo"><code>tdd</code> + <code>blast-radius</code> + <code>principle-prove-it-works</code> + <code>show-me-your-work</code><br>先复现、再看爆炸半径、收工验实物、全程留轨迹</div></div>
+  <div class="frow"><div class="task">✨ 新功能实现</div><div class="combo"><code>tdd</code> + <code>principle-prove-it-works</code> + <code>show-me-your-work</code> + <code>unslop</code><br>测试先行、验实物、留轨迹、对外文本去 AI 腔</div></div>
+  <div class="frow"><div class="task">🔧 重构</div><div class="combo"><code>how</code> + <code>why</code> + <code>blast-radius</code> + <code>tdd</code><br>先懂它怎么做、为什么这样、再看会炸什么、最后用测试锁住行为</div></div>
+  <div class="frow"><div class="task">🔍 调研 / 侦察</div><div class="combo"><code>how</code> + <code>why</code> + <code>interrogate</code> + <code>figure-it-out</code><br>读源码核实事实、挖动机、多模型挑刺、无章可循时先设计 playbook</div></div>
+  <div class="frow"><div class="task">🧐 评审 / 审计</div><div class="combo"><code>blast-radius</code> + <code>interrogate</code> + <code>principle-prove-it-works</code><br>爆炸半径、独立评审、结论用跑代码证明</div></div>
+</div>
+
+<h2><span class="n">4</span>三个实战教训（你亲授）</h2>
+<div class="lessons">
+  <div class="lesson"><h4>① 验收只认实物</h4><p>prove-it-works 落到派单：验收看 session 文件的新活动和产物文件本身，不认 exit 0 / "completed"。快得可疑的完成是去验证的信号，不是放行的信号。</p></div>
+  <div class="lesson"><h4>② 派单写负约束</h4><p>prompt 里写明"不许装工具链/包，做不到就报告收工"。否则 agent 会自作主张扩 scope——pi 曾花十几分钟装 rustup。</p></div>
+  <div class="lesson"><h4>③ prompt 与产物放 ~/workspace</h4><p>别放 /tmp：VM 替换会清空，曾导致续跑命令静默失败。每次复核完往 <code>~/workspace/pi-quality/quality-log.tsv</code> 追加一行。</p></div>
+</div>
+
+<h2><span class="n">5</span>新动态：v0.15.27 的形式化验证 skill</h2>
+<p class="sub">2026-10-19 poteto 刚宣布：<code>/create-formal-verification-skill</code>（beta）。这是个 <b>meta-skill</b>——你告诉它想验证什么性质，它生成一套专用的形式化验证 skill + 验证套件。用法举例：</p>
+<div class="grid">
+  <div class="card"><h3>TLA+ 建模</h3><p>给<b>状态机和并发系统</b>建模，在规约上跑求解器，数学证明不变量（必须永远为真的"定律"）。poteto 已经用它生成的 skill <b>找到了几个真 bug</b>。</p></div>
+  <div class="card"><h3>kani（Rust）</h3><p>无独立语言的新路线：<b>直接在 Rust 里写验证</b>，查未定义行为。不用另学一门建模语言。</p></div>
+  <div class="card"><h3>bend</h3><p>另一条新路线：bend 本身是编程语言，<b>证明以"定律"写在类型系统里</b>。</p></div>
+</div>
+<div class="note"><b>已更新：</b>你的 fork 已同步到 <b>v0.15.29</b>（2026-10-21，上游 @190d287；本机 vendor 镜像还停在 v0.15.28），四个 verification skill 全入库：<code>create-verification-skill</code>（生成行为验证 skill）、<code>create-formal-verification-skill</code>（生成形式化验证 skill，beta）、<code>maintain-verification-skill</code>、<code>maintain-formal-verification-skill</code>（两个 upkeep 循环）。对 VCLI Verifier 方向，这是现成的深挖起点——见下方 §7。</div>
+
+<h2><span class="n">6</span>上手三步</h2>
+<div class="steps">
+  <div class="step"><h4>选 3 个先用熟</h4><p>建议 <code>how</code>、<code>blast-radius</code>、<code>principle-prove-it-works</code>：理解、爆炸半径、验实物。这是所有任务类型的最大公约数。</p></div>
+  <div class="step"><h4>派单时挂上</h4><p>按 §3 的任务类型组合，用 <code>--skill</code> 透传。每个新任务用新 session-id（<code>muse-&lt;slug&gt;-&lt;yyyymmdd&gt;</code>），后台 stdin 挂 <code>&lt;/dev/null</code>。</p></div>
+  <div class="step"><h4>复盘时 reflect</h4><p>攒够 5 条 pi-quality 记录给自己一份小结：哪个组合返工少、哪类任务最容易翻车，沉淀进 skill。</p></div>
+</div>
+
+<h2><span class="n">7</span>深挖：四个 verification skill = VCLI Verifier 的操作化版本</h2>
+<p class="sub">四个 skill 组成一个完整的 verifier 闭环，恰好是你 VCLI 架构里 Generator / Policy / Executor / Verifier 的操作化形态。fork 的 README 也明确把 create 与 maintain 标成<b>成对安装</b>——生成 + upkeep，本来就是一个闭环的两半：</p>
+<div class="steps">
+  <div class="step"><h4>create-verification-skill</h4><p>生成"像用户一样驱动真实 app"的行为验证 skill：Launch / Doctor / Drive / Evidence / Cleanup + feature map。对应 <b>VCLI 的行为层验证</b>（virtuoso-cli 走 PTY 驱动、跑真实命令、留证据）。</p></div>
+  <div class="step"><h4>create-formal-verification-skill</h4><p>生成形式化验证 skill：选"bug 代价最大、测试最够不到"的代码，问题选工具（TLA+ / kani / bend）。对应 <b>VCLI 的性质层验证</b>（不变量、并发正确性）。</p></div>
+  <div class="step"><h4>maintain-verification-skill</h4><p>upkeep 循环，结果三分类：<code>clean</code> / <code>changed</code>（一个 PR 修 drift）/ <code>blocked</code>。只改验证，不改产品代码。</p></div>
+  <div class="step"><h4>maintain-formal-verification-skill</h4><p>upkeep 循环，结果四分类：<code>in sync</code> / <code>updated</code> / <code>bug</code> / <code>blocked</code>。这套分类可以直接借给 RSI / DNW runbook。</p></div>
+</div>
+<div class="lessons" style="margin-top:16px">
+  <div class="lesson"><h4>纪律 1：Able to fail</h4><p>每个 check 必须在故意弄坏的代码变体上失败过一次。没见过它失败的 check 证明不了任何事——这是 verifier 版的 prove-it-works。</p></div>
+  <div class="lesson"><h4>纪律 2：Sync commit</h4><p>每个 check 记录"上次确认描述的是哪个 commit 的代码"。代码变了、验证没跟上还继续 pass，是最危险的情况：<b>看起来像证明，其实描述的是不存在的代码</b>。这就是你的"验证履历"。</p></div>
+  <div class="lesson"><h4>纪律 3：不准放宽性质</h4><p>验证失败时不准弱化性质/模型去让它过；maintain run 不准改产品代码，bug 只报告。drift 和 bug 必须分开说——这就是"AI 找可疑、确定性工具定罪"。</p></div>
+</div>
+<div class="note"><b>给你的三个具体靶子：</b>① <code>virtuoso-cli</code> 的 <code>x11.rs</code>（X11 cookie/会话状态机 + 并发）→ TLA+ 的完美靶子：bug 代价大（你刚修了两个）、测试够不到；② Rust bridge 的 unsafe/内存行为 → kani；③ Rule2DRC harness 的 fail-closed（"旧结果文件不能被打分"）→ 本身就是一个 invariant，可以形式化。</div>
+
+<footer>
+  内容依据：<a href="https://github.com/deanyou/pstack">deanyou/pstack</a> @ <code>6f7bd80</code>（上游 v0.15.29 + harness adapters 提交）各 SKILL.md、README 与 docs/harness 原文 + 2026-10-19 poteto 的 X 帖（/create-formal-verification-skill 发布）。<br>
+  制作：2026-10-20 · 更新：2026-10-21（结合 deanyou/pstack）· 供个人学习使用
+</footer>
+
+</div>
+<script>
+const DEMOS={
+how:[["cmd","/how \"pi 的 session 恢复是怎么工作的\""],["out","走读：session 存储 → 索引 → 恢复路径…"],["out","产出：心智模型（三层：落盘 / 索引 / 校验）"],["ok","✓ 先懂，再改"]],
+why:[["cmd","/why \"cookie 校验为什么放在 Rust 层\""],["out","并行查证据：git log · issue · 文档 · 聊天"],["out","结论（置信度 高）：校验必须贴着 transport"],["out","Python 层拿不到原始句柄——这是\"我知道\"，不是推测"]],
+teach:[["cmd","/teach \"legion 三元组隔离\""],["out","第 1 讲：session-id 管续跑"],["out","第 2 讲：worktree 管文件隔离"],["out","第 3 讲：branch 管合并边界"],["ok","✓ 按你的节奏讲到真懂"]],
+recall:[["cmd","/recall"],["out","翻聊天记录 + issue + 实时状态…"],["out","上次停在：PR #12 待合 · 回归 9/10 过"],["out","下一步：修 DNS 环境失败，再跑一轮"]],
+interrogate:[["cmd","/interrogate 这次改动"],["out","模型 A：边界漏了——空 cookie 没处理"],["out","模型 B：并发下 session 文件竞写"],["out","模型 C：无异议"],["ok","裁决：2 处盲区，先修再合（不自动改码）"]],
+blast:[["cmd","/blast-radius 这个 diff"],["out","grep 调用方：3 处——但这不是重点"],["out","grep 看不见的：preflight 脚本 + CI 变量"],["ok","✓ 关键事实已用真代码验证，不信报告"]],
+tdd:[["cmd","/tdd 修 cookie 过期不报错"],["out","先写回归测试：expired_cookie_rejected"],["bad","✗ FAIL（修前，如期失败）"],["out","改校验逻辑…"],["ok","✓ PASS（修后转绿）"]],
+prove:[["cmd","/prove-it-works 验收这次派单"],["out","不看 agent 报告，跑真实路径："],["out","pi-task 续跑 → 读 session 文件 → 值对得上"],["ok","✓ 实物通过，才算完成"]],
+show:[["cmd","/show-me-your-work"],["out","14:02 decide 挂 tdd+blast · 证据 session:212"],["out","14:19 verify 跑回归 137/138 · 证据 log 路径"],["out","14:31 ship 提 PR · 证据 commit 8a78f5a"],["ok","✓ 一行一决策，证据是路径不是段落"]],
+figure:[["cmd","/figure-it-out 迁移 40 个 SKILL 文件"],["out","先定完成定义：全部能被 dsh 加载（可证伪）"],["out","量化 scope：40 个文件 · 3 类问题"],["out","假设 H1：frontmatter 是唯一阻塞 → 验证中…"]],
+unslop:[["cmd","/unslop 这段发布说明"],["bad","原文：\"delve into the crucial tapestry…\""],["out","命中：delve / crucial / Not just X, but Y"],["ok","改后：\"This release fixes the cookie check.\""]],
+reflect:[["cmd","/reflect（仅你开口时才跑）"],["out","3 个评审 agent 并行挖本会话教训…"],["out","教训：派单必写负约束，否则 agent 扩 scope"],["ok","✓ 已落成 pi-task 模板的一行修改"]]
+};
+function runTerm(id,lines,delay){
+  const el=document.getElementById(id); if(!el) return;
+  let li=0;
+  function step(){
+    if(li>=lines.length){ setTimeout(()=>{ el.innerHTML=""; li=0; step(); },3600); return; }
+    const kind=lines[li][0], text=lines[li][1]; li++;
+    const div=document.createElement("div");
+    if(kind==="cmd"){
+      div.innerHTML='<span class="tp">$ </span>';
+      const span=document.createElement("span"); span.className="tc"; div.appendChild(span);
+      const cur=document.createElement("span"); cur.className="cur"; div.appendChild(cur);
+      el.appendChild(div);
+      let i=0;
+      const iv=setInterval(()=>{ span.textContent=text.slice(0,++i); if(i>=text.length){ clearInterval(iv); cur.remove(); setTimeout(step,420); } },30);
+    }else{
+      div.className="t"+kind; div.textContent=text; el.appendChild(div);
+      setTimeout(step, kind==="ok"?700:500);
+    }
+  }
+  setTimeout(step,delay);
+}
+Object.keys(DEMOS).forEach((k,i)=>runTerm("term-"+k,DEMOS[k],i*450));
+</script>
+</body>
+</html>

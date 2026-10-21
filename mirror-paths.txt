@@ -9,4 +9,5 @@ docs/harness/cursor.md
 docs/harness/gemini-cli.md
 docs/harness/crush.md
 docs/harness/generic.md
+docs/pstack-usage-guide-2026-10-20.html
 scripts/
