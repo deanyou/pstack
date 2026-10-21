@@ -1,0 +1,12 @@
+# Paths this mirror owns. Cursor's upstream pstack/ does not ship them.
+# The rsync in MIRROR.md excludes these, so a sync never deletes them.
+# docs/harness/claude-code.md is NOT here: Cursor ships it.
+docs/harness/README.md
+docs/harness/codex.md
+docs/harness/pi.md
+docs/harness/opencode.md
+docs/harness/cursor.md
+docs/harness/gemini-cli.md
+docs/harness/crush.md
+docs/harness/generic.md
+scripts/

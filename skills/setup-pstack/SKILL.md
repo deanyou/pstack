@@ -8,7 +8,8 @@ description: Configure which models pstack uses per role and at what reasoning b
 Write pstack's model settings, one model per role:
 
 - **Cursor:** `~/.cursor/rules/pstack-models.mdc`, an always-applied rule.
-- **Every other harness** (Claude Code, Codex, Pi, OpenCode, and others): `~/.agents/pstack-models.md`. These harnesses don't load Cursor rules, so pstack skills read this file when they pick a model.
+- **Claude Code:** the same role lines in `~/.claude/rules/pstack-models.md`. Claude Code loads every `.md` in `~/.claude/rules/` into each new session, so no pointer is needed.
+- **Every other harness** (Codex, Pi, OpenCode, and others): `~/.agents/pstack-models.md`, one file shared by all of them. These harnesses don't load Cursor rules, so pstack skills read this file when they pick a model, and step 5b leaves a pointer to it in each harness's always-loaded instruction file.
 
 "The settings file" below means the file for your harness. When reading, check both paths and use the one that exists.
 
@@ -70,14 +71,39 @@ architect runners: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast
 interrogate reviewers: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast
 ```
 
-### 6. Confirm
+### 6. Point each harness at it
 
-Tell the user which file was written. In Cursor, the rule applies to new sessions. In other harnesses, pstack skills read `~/.agents/pstack-models.md` when they pick a model. Re-running this skill updates it.
+Only for harnesses other than Cursor and Claude Code. Their always-loaded file gets a pointer to `~/.agents/pstack-models.md`, so the roles are in context without the agent having to go looking. The pointer is a block between these two comment markers, and updating it is idempotent: if the markers are already in the file, replace the lines between them, otherwise append the block at the end.
 
-### 7. Offer a verification skill (optional)
+```markdown
+<!-- pstack:models:start -->
+## pstack model configuration
+
+Read `~/.agents/pstack-models.md` at task start. It holds one line per role and a `# budget` line. A missing file or a missing role line means the skill's default model applies.
+<!-- pstack:models:end -->
+```
+
+Write it into, in order of preference, the first path that exists:
+
+| Harness | Always-loaded file |
+|---|---|
+| Codex | `~/.codex/AGENTS.md` |
+| Pi | `~/.pi/agent/AGENTS.md` |
+| OpenCode | `~/.config/opencode/AGENTS.md` |
+| Gemini CLI | `~/.gemini/GEMINI.md` |
+| Crush | `AGENTS.md` in the project root (Crush has no global instruction file) |
+| Anything else | Its global `AGENTS.md` or equivalent, when one exists |
+
+When no path exists, put one line in your reply, `Skipped in <harness>: pstack model pointer. No always-loaded file found.`, and go on. The skill still works: the skills read `~/.agents/pstack-models.md` directly when they pick a model.
+
+### 7. Confirm
+
+Tell the user which file was written. In Cursor, the rule applies to new sessions. In Claude Code, the rules file applies to new sessions. Elsewhere, pstack skills read `~/.agents/pstack-models.md` when they pick a model, and the pointer in the harness's instruction file puts the roles in context from the first turn. Re-running this skill updates all of them.
+
+### 8. Offer a verification skill (optional)
 
 Check whether the project has a way to drive the real app for proof (a `verify-*` skill, or an existing harness). If not, offer once: "want a project-local verification skill, so agents can drive the app the way a user does and prove changes work? I can generate one with /create-verification-skill." On yes, invoke `/create-verification-skill` (resolves wherever pstack is installed: workspace, user, or plugin). On no, move on without pushing.
 
-### 8. Offer a formal verification skill (optional)
+### 9. Offer a formal verification skill (optional)
 
 Check whether the project already has a formal verification skill (a project skill that runs a model checker, a proof, or another verifier against the code). If not, offer once: "want a formal verification skill, so agents can prove a key property of your code holds in every case in scope, not only the cases tests reach? I can generate one with /create-formal-verification-skill." On yes, invoke `/create-formal-verification-skill` (resolves wherever pstack is installed: workspace, user, or plugin). On no, move on without pushing.

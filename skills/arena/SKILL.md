@@ -8,6 +8,8 @@ disable-model-invocation: true
 
 Open a todolist with one entry per phase (Frame, Fan out, Cross-judge, Pick, Graft, Verify) before launching anything.
 
+**Other harnesses.** The spawns in this skill use Cursor's `Task` tool, and `run_in_background: true` is one of its parameters. In another harness, use its subagent tool: `Agent` in Claude Code (`subagent_type: general-purpose`), `task` in OpenCode (`subagent_type: general`), `spawn_agent` in Codex. Drop `run_in_background` when your tool has no such parameter, and let each candidate finish before you judge it. Keep the prompt and the model. If your harness has no subagent tool, as in Pi without an extension, run the candidates yourself, one after another.
+
 ## Phase A: Frame
 
 Every candidate gets the same prompt, so the prompt is the contract.

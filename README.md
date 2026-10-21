@@ -37,9 +37,45 @@ Some skills call other skills. Install these together:
 | `poteto-mode` | all `principle-*` skills and most of the other skills |
 | `poteto-help` | the skills you want help with |
 
+## Harness adapters
+
+The skills are written in Cursor's names. Every other harness spells things
+differently, so each one gets an adapter: a short table of tool names, file
+paths, and model slugs.
+
+`docs/harness/README.md` indexes them. There is one per harness:
+
+| Harness | Adapter |
+|---|---|
+| Claude Code | [claude-code.md](docs/harness/claude-code.md) (Cursor's own file) |
+| Codex | [codex.md](docs/harness/codex.md) |
+| Pi | [pi.md](docs/harness/pi.md) |
+| OpenCode | [opencode.md](docs/harness/opencode.md) |
+| Gemini CLI | [gemini-cli.md](docs/harness/gemini-cli.md) |
+| Crush | [crush.md](docs/harness/crush.md) |
+| Cursor | [cursor.md](docs/harness/cursor.md) |
+| Anything else | [generic.md](docs/harness/generic.md) |
+
+To find yours, run the detector from a pstack checkout:
+
+```bash
+scripts/harness-detect.sh
+```
+
+It prints the harness, the adapter path, and the paths pstack should use
+there. It detects the harness from the process that invoked it, so a Codex
+session started from Claude Code still reports Codex. Override it with
+`PSTACK_HARNESS=<name>` or `--harness <name>`.
+
+Each skill also carries a one-line mapping where Cursor's name appears, so a
+skill still works when the adapters are not on disk, as happens when the
+skills are installed on their own through the `skills` CLI.
+
 ## What this mirror changes
 
 Many skills were Cursor-specific. They've been rewritten to work in any harness.
+
+The mirror adds the harness adapters above, the detector script, and a model-configuration setup that writes one role table (`~/.agents/pstack-models.md`) and points each harness at it.
 <!-- mirror:end -->
 
 ---
