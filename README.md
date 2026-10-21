@@ -50,6 +50,8 @@ paths, and model slugs.
 | Claude Code | [claude-code.md](docs/harness/claude-code.md) (Cursor's own file) |
 | Codex | [codex.md](docs/harness/codex.md) |
 | Pi | [pi.md](docs/harness/pi.md) |
+| OMP | [omp.md](docs/harness/omp.md) |
+| Peri | [peri.md](docs/harness/peri.md) |
 | OpenCode | [opencode.md](docs/harness/opencode.md) |
 | Gemini CLI | [gemini-cli.md](docs/harness/gemini-cli.md) |
 | Crush | [crush.md](docs/harness/crush.md) |
@@ -75,7 +77,7 @@ skills are installed on their own through the `skills` CLI.
 
 Many skills were Cursor-specific. They've been rewritten to work in any harness.
 
-The mirror adds the harness adapters above, the detector script, and a model-configuration setup that writes one role table (`~/.agents/pstack-models.md`) and points each harness at it.
+The mirror adds the harness adapters above, the detector script, and a model-configuration setup that writes a role table per harness (`~/.agents/pstack-models.<harness>.md`, with `~/.agents/pstack-models.md` as a shared fallback) and points each harness at it.
 <!-- mirror:end -->
 
 ---

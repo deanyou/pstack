@@ -4,9 +4,12 @@
 docs/harness/README.md
 docs/harness/codex.md
 docs/harness/pi.md
+docs/harness/omp.md
+docs/harness/peri.md
 docs/harness/opencode.md
 docs/harness/cursor.md
 docs/harness/gemini-cli.md
 docs/harness/crush.md
 docs/harness/generic.md
+docs/pstack-usage-guide-2026-10-20.html
 scripts/

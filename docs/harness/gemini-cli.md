@@ -50,8 +50,9 @@ one exists: use its tool, drop parameters it lacks, and say which one you used.
 | A role value `<model> <effort>` | A model plus its thinking level where the model supports one. |
 
 Select a model with `-m/--model` or `settings.json`. Per-role choices live in
-`~/.agents/pstack-models.md`; read it at task start and map each role onto the
-Gemini model that exists on your plan. Mark any role you cannot map as needing
+`~/.agents/pstack-models.gemini-cli.md`, with the shared
+`~/.agents/pstack-models.md` as a fallback; read it at task start and map each
+role onto the Gemini model that exists on your plan. Mark any role you cannot map as needing
 a choice rather than inventing a slug.
 
 ## Skills
@@ -80,7 +81,7 @@ is all a skill is, so nothing about pstack depends on discovery.
 | `~/.gemini/GEMINI.md` | User instructions across projects |
 | `<project>/GEMINI.md` | Project instructions |
 
-`/setup-pstack` writes a pointer to `~/.agents/pstack-models.md` in
+`/setup-pstack` writes a pointer to `~/.agents/pstack-models.gemini-cli.md` in
 `~/.gemini/GEMINI.md`.
 
 ## Invoking a skill

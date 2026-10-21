@@ -39,6 +39,8 @@ scripts/harness-detect.sh --json      # one JSON object
 | Claude Code | [claude-code.md](claude-code.md) | `.claude/skills/` | `~/.claude/skills/` | `~/.claude/rules/*.md` |
 | Codex | [codex.md](codex.md) | `.codex/skills/` | `~/.codex/skills/` | `~/.codex/AGENTS.md` |
 | Pi | [pi.md](pi.md) | `.pi/skills/` | `~/.pi/agent/skills/` | `~/.pi/agent/AGENTS.md` |
+| OMP | [omp.md](omp.md) | `.agents/skills/` | `~/.agents/skills/` | `~/.agents/AGENTS.md` |
+| Peri | [peri.md](peri.md) | `.claude/skills/` | `~/.claude/skills/` | `~/.peri/CLAUDE.md` |
 | OpenCode | [opencode.md](opencode.md) | `.opencode/skill/` | `~/.config/opencode/skills/` | `~/.config/opencode/AGENTS.md` |
 | Gemini CLI | [gemini-cli.md](gemini-cli.md) | `.gemini/skills/` | `~/.gemini/skills/` | `~/.gemini/GEMINI.md` |
 | Crush | [crush.md](crush.md) | `.crush/skills/` | `~/.config/crush/skills/` | `~/.config/crush/CRUSH.md` |
@@ -46,7 +48,8 @@ scripts/harness-detect.sh --json      # one JSON object
 | Anything else | [generic.md](generic.md) | `.agents/skills/` | `~/.agents/skills/` | whatever your harness loads |
 
 `claude-code.md` is Cursor's own file, shipped upstream. The rest are this
-mirror's.
+mirror's. Peri shares Claude Code's skill folders, so one install of the
+skills serves both.
 
 ## What every adapter covers
 
@@ -68,20 +71,29 @@ that matches your harness and you have everything pstack needs.
 
 These four rules apply to every harness. An adapter never contradicts them.
 
-**The model choices live in one file.** `~/.agents/pstack-models.md` holds
-one line per role, plus a `# budget` line. Cursor is the exception: it uses
-`~/.cursor/rules/pstack-models.mdc`, an always-applied rule. Every other
-harness gets a pointer to the shared file in its always-loaded instruction
-file, so the roles are in context without the agent having to go looking.
-`/setup-pstack` writes both.
+**The model choices live in one file per harness.** Each harness reads
+`~/.agents/pstack-models.<harness>.md`, with `~/.agents/pstack-models.md` as a
+shared fallback, and the file holds one line per role plus a `# budget` line.
+Cursor and Claude Code are the exceptions: they use their own always-loaded
+rule, `~/.cursor/rules/pstack-models.mdc` and `~/.claude/rules/pstack-models.md`.
+Every other harness gets a pointer to its file in its always-loaded
+instruction file, so the roles are in context without the agent having to go
+looking. `/setup-pstack` writes both.
+
+One file per harness because model slugs are not portable. Codex takes a bare
+slug such as `gpt-6.1-sol`, Pi and OMP take `<provider>/<model-id>` such as
+`magpie/codex/gpt-6.1-sol`, and Claude Code takes `<model> <effort>` such as
+`opus xhigh`. A file shared by every harness hands each one slugs it cannot
+resolve, and the skills then fall back to their defaults without saying so.
 
 **A skill that needs a sibling reads the sibling's file.** There is no
 cross-skill tool call. Read `../<name>/SKILL.md` relative to the skill you
 are in, or the skill's absolute path, and follow it.
 
 **Name a skill the way your harness names it.** Claude Code prefixes plugin
-commands, so `/pstack:poteto-mode`. Pi registers skills as `/skill:<name>`.
-Cursor and most others use `/<name>`. The adapter lists the exact form.
+commands, so `/pstack:poteto-mode`. Pi and OMP register skills as
+`/skill:<name>`. Cursor, Peri, and most others use `/<name>`. The adapter
+lists the exact form.
 
 **A missing capability is a skip, not a stop.** When a step needs something
 your harness lacks, put one line in your reply, `Skipped in <harness>: <step>.

@@ -61,9 +61,11 @@ pstack follows from the answers.
 
 ## Models
 
-The per-role model choices live in `~/.agents/pstack-models.md`, one line per
-role, plus a `# budget` line. Read it at task start. If the file or a role's
-line is missing, use the skill's default slug.
+The per-role model choices live in `~/.agents/pstack-models.<harness>.md`, with
+the shared `~/.agents/pstack-models.md` as a fallback: one line per role, plus
+a `# budget` line. Read it at task start. If the file or a role's line is
+missing, use the skill's default slug. Slugs in the shared fallback belong to
+whichever harness last wrote it, so map them onto your own.
 
 Name a model the way your harness does. If a slug your harness rejects comes
 back, use the same family's nearest valid slug from its error message or your

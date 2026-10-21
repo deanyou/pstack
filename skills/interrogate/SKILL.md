@@ -26,7 +26,7 @@ Before spawning reviewers, state the intent in one clear paragraph from the user
 
 ## Step 3, Spawn Reviewers
 
-Launch all reviewers in a single message with the Task tool, one per entry on the `interrogate reviewers` line in the pstack settings file (`~/.cursor/rules/pstack-models.mdc` in Cursor, `~/.agents/pstack-models.md` in other harnesses), labeled Reviewer A, B, and so on to match the entry count. If the file or that line is missing, use the table defaults.
+Launch all reviewers in a single message with the Task tool, one per entry on the `interrogate reviewers` line in the pstack settings file for your harness (see the **Harness** section of the **poteto-mode** skill), labeled Reviewer A, B, and so on to match the entry count. If the file or that line is missing, use the table defaults.
 
 | Subagent | Default model |
 |----------|---------------|
