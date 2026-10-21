@@ -14,6 +14,7 @@ Never copy Cursor's files onto `main` directly. That erases the edits.
 These paths exist only in this mirror. Cursor does not ship them, and a sync must not drop them. `mirror-paths.txt` lists them and the rsync in step 1 excludes them, so a sync never deletes them on the `upstream` branch either.
 
 - `docs/harness/README.md`, `docs/harness/codex.md`, `docs/harness/pi.md`, `docs/harness/omp.md`, `docs/harness/peri.md`, `docs/harness/opencode.md`, `docs/harness/cursor.md`, `docs/harness/gemini-cli.md`, `docs/harness/crush.md`, `docs/harness/generic.md`. `docs/harness/claude-code.md` is Cursor's, not this mirror's.
+- `docs/pstack-usage-guide-2026-10-20.html`.
 - `scripts/harness-detect.sh`.
 - `mirror-paths.txt` itself.
 
@@ -27,12 +28,14 @@ If Cursor later ships a file at one of these paths, the merge conflicts. Resolve
    git clone --depth 1 --filter=blob:none --sparse https://github.com/cursor/plugins.git /tmp/cursor-plugins
    git -C /tmp/cursor-plugins sparse-checkout set pstack
    git switch upstream
-   rsync -a --delete --exclude .git --exclude MIRROR.md --exclude-from mirror-paths.txt /tmp/cursor-plugins/pstack/ ./
+   git rev-parse HEAD > /tmp/pstack-upstream-old
+   git show main:mirror-paths.txt > /tmp/pstack-mirror-paths.txt
+   rsync -a --delete --exclude .git --exclude MIRROR.md --exclude-from /tmp/pstack-mirror-paths.txt /tmp/cursor-plugins/pstack/ ./
    git add -A
-   git commit -m "upstream: cursor/plugins/pstack @ $(git -C /tmp/cursor-plugins rev-parse --short HEAD)"
+   git diff --cached --quiet || git commit -m "upstream: cursor/plugins/pstack @ $(git -C /tmp/cursor-plugins rev-parse --short HEAD)"
    ```
 
-   `--exclude-from mirror-paths.txt` protects the mirror-owned files above. rsync does not delete receiver files that are excluded, so they survive the sync even when the `upstream` branch happens to carry them.
+   The exclude list is read from `main`, because `upstream` carries Cursor's files only and has no `mirror-paths.txt` of its own. rsync does not delete receiver files that are excluded, so the mirror-owned files survive the sync even when the `upstream` branch happens to carry them. The commit is skipped when the sync brought no change, which is the normal case when Cursor has not published since the last sync.
 
 2. Merge it into `main`. Git applies only what changed upstream and keeps the mirror's edits:
 
@@ -47,8 +50,10 @@ If Cursor later ships a file at one of these paths, the merge conflicts. Resolve
 
    ```bash
    cp agents/comment-sicko.md skills/no-comments/references/comment-sicko.md
-   git diff upstream@{1} upstream -- skills | grep -nE '\.cursor/|agent-transcripts|cursor-team-kit|create-skill|Task'
+   git diff "$(cat /tmp/pstack-upstream-old)" upstream -- skills | grep -nE '\.cursor/|agent-transcripts|cursor-team-kit|create-skill|Task'
    ```
+
+   The base is the commit step 1 recorded, not `upstream@{1}`, because `upstream@{1}` does not exist on the first sync.
 
    Rewrite any new hits the same way as the existing edits. The Harness section in `skills/poteto-mode/SKILL.md` lists the mappings, and `docs/harness/README.md` holds the per-harness adapters.
 
