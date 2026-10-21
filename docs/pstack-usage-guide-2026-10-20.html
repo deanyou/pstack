@@ -498,10 +498,10 @@ loadConfig().then(boot).catch(fail);
     <p>8 份适配文档：<b>Claude Code / Codex / Pi / OpenCode / Gemini CLI / Crush / Cursor / generic</b>（兜底）。每份是一张对照表：工具名、文件路径、模型 slug 在这个 harness 里叫什么。其中 <b>pi.md 最长（167 行）</b>——正对你的主力 harness。</p>
     <div class="trigger">位置：<code>docs/harness/README.md</code> 是索引</div></div>
   <div class="card"><h3>scripts/harness-detect.sh</h3>
-    <p><b>检测脚本</b>：跑一下就知道当前在哪个 harness，输出 harness 名、对应 adapter 路径、pstack 该用的关键路径（支持 <code>--json</code> / <code>--export</code>）。识别顺序：<code>PSTACK_HARNESS</code> 环境变量 → <code>--harness</code> 参数 → 祖先进程 → 环境标记 → 工作树目录 → generic。<code>poteto-mode</code> 已改为引用它。</p>
+    <p><b>检测脚本</b>：跑一下就知道当前在哪个 harness，输出 harness 名、对应 adapter 路径、pstack 该用的关键路径（支持 <code>--json</code> / <code>--export</code>）。识别顺序：<code>PSTACK_HARNESS</code> 环境变量 → <code>--harness</code> 参数 → 祖先进程 → 环境标记 → 工作树目录 → generic。支持 Claude Code、Codex、Pi、OMP、OpenCode、Gemini CLI、Crush、Cursor。<code>poteto-mode</code> 已改为引用它。</p>
     <div class="trigger">用法：在 pstack 检出目录里跑 <code>scripts/harness-detect.sh</code></div></div>
-  <div class="card"><h3>模型配置：一处写、多处指</h3>
-    <p><code>setup-pstack</code> 第 6 步把模型角色表写到 <b><code>~/.agents/pstack-models.md</code></b>，各 harness 的常驻文件（always-loaded）里只放一行指针。换模型只改一处，所有 harness 跟着变。</p></div>
+  <div class="card"><h3>模型配置：每个 harness 一份</h3>
+    <p><code>setup-pstack</code> 第 6 步把模型角色表写到 <b><code>~/.agents/pstack-models.&lt;harness&gt;.md</code></b>（Cursor 用 <code>~/.cursor/rules/pstack-models.mdc</code>，Claude Code 用 <code>~/.claude/rules/pstack-models.md</code>），各 harness 的常驻文件（always-loaded）里只放一行指针，<code>~/.agents/pstack-models.md</code> 作为共享兜底。<b>按 harness 分檔是因為模型名不通用</b>：Codex 用裸名（<code>gpt-6.1-sol</code>），Pi / OMP 用 <code>&lt;provider&gt;/&lt;model-id&gt;</code>（<code>magpie/codex/gpt-6.1-sol</code>），Claude Code 用 <code>&lt;model&gt; &lt;effort&gt;</code>（<code>opus xhigh</code>）——共用一份檔會讓每個 harness 拿到自己解析不了的 slug，技能只好默默退回預設值。</p></div>
   <div class="card"><h3>mirror-paths.txt 同步保护</h3>
     <p>fork 自有文件登记在 <code>mirror-paths.txt</code> 里，<code>MIRROR.md</code> 的 rsync 同步上游时排除它们，<b>不被 <code>--delete</code> 误删</b>。这是 fork 能长期跟上游、又不丢自有改动的机制。</p></div>
   <div class="card"><h3>GNU/Linux 修复（PR #1）</h3>

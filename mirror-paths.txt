@@ -4,6 +4,7 @@
 docs/harness/README.md
 docs/harness/codex.md
 docs/harness/pi.md
+docs/harness/omp.md
 docs/harness/opencode.md
 docs/harness/cursor.md
 docs/harness/gemini-cli.md

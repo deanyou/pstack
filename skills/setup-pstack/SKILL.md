@@ -5,13 +5,14 @@ description: Configure which models pstack uses per role and at what reasoning b
 
 # Setup pstack
 
-Write pstack's model settings, one model per role:
+Write pstack's model settings, one model per role.
 
 - **Cursor:** `~/.cursor/rules/pstack-models.mdc`, an always-applied rule.
 - **Claude Code:** the same role lines in `~/.claude/rules/pstack-models.md`. Claude Code loads every `.md` in `~/.claude/rules/` into each new session, so no pointer is needed.
-- **Every other harness** (Codex, Pi, OpenCode, and others): `~/.agents/pstack-models.md`, one file shared by all of them. These harnesses don't load Cursor rules, so pstack skills read this file when they pick a model, and step 5b leaves a pointer to it in each harness's always-loaded instruction file.
+- **Every other harness** (Codex, Pi, OMP, OpenCode, and others): `~/.agents/pstack-models.<harness>.md`, where `<harness>` is your harness's name (`codex`, `pi`, `omp`, `opencode`, `gemini-cli`, `crush`, `generic`). One file per harness, because model slugs are not portable: Codex takes a bare slug such as `gpt-6.1-sol`, Pi and OMP take `<provider>/<model-id>` such as `magpie/codex/gpt-6.1-sol`, and OpenCode takes its own provider ids. A file shared by every harness hands each one slugs it cannot resolve.
+- **Shared fallback:** `~/.agents/pstack-models.md`. A harness with no file of its own reads this one. It holds whichever dialect last ran this skill, so treat its slugs as a starting point and map them onto your own.
 
-"The settings file" below means the file for your harness. When reading, check both paths and use the one that exists.
+"The settings file" below means your harness's own file, then the shared fallback. When reading, take the first that exists. When writing, write your harness's own file, and refresh the shared fallback so a harness with no file yet has a starting point.
 
 ## Steps
 
@@ -42,7 +43,7 @@ Every real slug written must be in the detected set. `inherit-parent` and `auto`
 
 ### 5. Write the rule
 
-Write the settings file with a `# budget` line with the chosen label and its target effort, and one line per role, using the same labels poteto-mode uses. In Cursor, include the frontmatter below with `alwaysApply: true`. In other harnesses, write `~/.agents/pstack-models.md` without the frontmatter (start at the first `#` line). Overwrite the whole file so re-runs stay idempotent. Shape:
+Write the settings file with a `# budget` line with the chosen label and its target effort, and one line per role, using the same labels poteto-mode uses. In Cursor, include the frontmatter below with `alwaysApply: true`. In Claude Code, write `~/.claude/rules/pstack-models.md` with no frontmatter. In every other harness, write `~/.agents/pstack-models.<harness>.md` with no frontmatter (start at the first `#` line). Overwrite the whole file so re-runs stay idempotent. Write the shared fallback `~/.agents/pstack-models.md` with the same content when it is missing, so a harness with no file of its own has a starting point. Shape:
 
 ```
 ---
@@ -73,13 +74,13 @@ interrogate reviewers: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast
 
 ### 6. Point each harness at it
 
-Only for harnesses other than Cursor and Claude Code. Their always-loaded file gets a pointer to `~/.agents/pstack-models.md`, so the roles are in context without the agent having to go looking. The pointer is a block between these two comment markers, and updating it is idempotent: if the markers are already in the file, replace the lines between them, otherwise append the block at the end.
+Only for harnesses other than Cursor and Claude Code. Their always-loaded file gets a pointer to your harness's settings file, so the roles are in context without the agent having to go looking. The pointer is a block between these two comment markers, and updating it is idempotent: if the markers are already in the file, replace the lines between them, otherwise append the block at the end.
 
 ```markdown
 <!-- pstack:models:start -->
 ## pstack model configuration
 
-Read `~/.agents/pstack-models.md` at task start. It holds one line per role and a `# budget` line. A missing file or a missing role line means the skill's default model applies.
+Read your harness's pstack settings file at task start: `~/.agents/pstack-models.<harness>.md` if it exists, else `~/.agents/pstack-models.md`. It holds one line per role and a `# budget` line. A missing file or a missing role line means the skill's default model applies.
 <!-- pstack:models:end -->
 ```
 
@@ -89,16 +90,17 @@ Write it into, in order of preference, the first path that exists:
 |---|---|
 | Codex | `~/.codex/AGENTS.md` |
 | Pi | `~/.pi/agent/AGENTS.md` |
+| OMP | `~/.agents/AGENTS.md`, or `~/.omp/AGENTS.md` |
 | OpenCode | `~/.config/opencode/AGENTS.md` |
 | Gemini CLI | `~/.gemini/GEMINI.md` |
 | Crush | `AGENTS.md` in the project root (Crush has no global instruction file) |
 | Anything else | Its global `AGENTS.md` or equivalent, when one exists |
 
-When no path exists, put one line in your reply, `Skipped in <harness>: pstack model pointer. No always-loaded file found.`, and go on. The skill still works: the skills read `~/.agents/pstack-models.md` directly when they pick a model.
+When no path exists, put one line in your reply, `Skipped in <harness>: pstack model pointer. No always-loaded file found.`, and go on. The skill still works: the skills read your harness's settings file directly when they pick a model.
 
 ### 7. Confirm
 
-Tell the user which file was written. In Cursor, the rule applies to new sessions. In Claude Code, the rules file applies to new sessions. Elsewhere, pstack skills read `~/.agents/pstack-models.md` when they pick a model, and the pointer in the harness's instruction file puts the roles in context from the first turn. Re-running this skill updates all of them.
+Tell the user which file was written. In Cursor, the rule applies to new sessions. In Claude Code, the rules file applies to new sessions. Elsewhere, pstack skills read `~/.agents/pstack-models.<harness>.md` when they pick a model, and the pointer in the harness's instruction file puts the roles in context from the first turn. Re-running this skill updates all of them.
 
 ### 8. Offer a verification skill (optional)
 

@@ -47,24 +47,56 @@ Pi core ships no subagent tool. The optional `pi-subagents` package adds a
 `subagent` tool with single-agent, chain, parallel, async, forked-context, and
 resume workflows. Install it and use it, or do the work yourself.
 
+```bash
+pi install npm:pi-subagents
+```
+
 Without a subagent tool, run each delegated step in the main session, one
 after another. Keep the brief, the scope, and the model in your own context
 so the steps stay separable, and say so in the reply. Do not fabricate `Task`
 calls.
+
+### The `subagent` tool
+
+The package's `subagent` tool takes `agent`, `task`, `model`, `async`, `cwd`,
+`worktree`, `options.context`, and `action`. It ships these agents:
+
+| Agent | Use it for |
+|---|---|
+| `scout` | Fast local codebase recon: relevant files, entry points, data flow, risks. |
+| `researcher` | Web and docs research with sources. |
+| `evidence-auditor` | Checks whether research claims are supported by their sources. |
+| `worker` | Implementation work. |
+| `reviewer` | Code review and small fixes. |
+| `oracle` | A second opinion that challenges assumptions without editing. |
+| `delegate` | A general delegate that behaves close to the parent session. |
+
+`model` takes a `provider/id`, the same slug Pi itself uses, and a
+`:thinking` suffix sets the child's thinking level, such as
+`magpie/codex/gpt-6.1-sol:xhigh`. `options.context` picks `fresh`, `fork`, or
+`profile`; `fresh` is the clean context pstack wants. `async: true` runs the
+child in the background.
+
+One quirk matters for pstack. On a fresh session, some models see a small
+`subagents_enable` loader instead of the full `subagent` schema, because
+adding a tool mid-conversation would break the provider's prompt cache. The
+loader appears when the request or the instructions authorize delegation.
+pstack's skills authorize it by asking for a subagent, so call the loader and
+the `subagent` tool is there on the next model request.
 
 ### Mapping Cursor's subagent fields
 
 | Cursor | Pi |
 |---|---|
 | `subagent_type: generalPurpose` | The `subagent` tool, if `pi-subagents` is installed. Otherwise do the step yourself. |
-| `poteto-agent`, `comment-sicko` | Same. These are pstack's own agent files, not Pi's. |
-| `readonly: true` | The subagent tool's own read-only option, if it has one. Otherwise say "do not edit files" in the brief and check `git status` afterward. |
-| `readonly: false` | Default. |
+| `poteto-agent`, `comment-sicko` | Same. These are pstack's own agent files, not Pi's. Spawn a packaged agent such as `delegate` and put the poteto-mode instruction at the top of the task. |
+| `readonly: true` | The `scout`, `researcher`, and `oracle` agents do not edit. Otherwise say "do not edit files" in the brief and check `git status` afterward. |
+| `readonly: false` | The `worker` agent. |
 | `environment: "cloud"` | No equivalent. Run the worker locally in its own worktree. |
 | `environment: "local"` | Omit. |
 | `cloud_base_branch: <b>` | Tell the worker to check out `<b>` first. |
-| `run_in_background: true` | The `subagent` tool's async mode, if it has one. Otherwise run it and wait. |
-| `model` | A model slug, see **Models**. |
+| `run_in_background: true` | `async: true`. |
+| `model` | A `provider/id` slug, optionally with a `:thinking` suffix. See **Models**. |
 | `resume` | Start a new step and paste the earlier result into its brief. |
 | `file_attachments` | List the paths in the brief. |
 
@@ -97,7 +129,7 @@ Where the model comes from:
 | `~/.pi/agent/models.json` | Providers, their endpoints, and each provider's model list with `id`, `name`, `reasoning`, and `thinkingLevelMap`. |
 | `~/.pi/agent/settings.json` | `defaultProvider`, `defaultModel`, `defaultThinkingLevel`. |
 | `~/.pi/agent/auth.json` | API keys and OAuth credentials. |
-| `~/.agents/pstack-models.md` | pstack's per-role model choices. Read it at task start. |
+| `~/.agents/pstack-models.pi.md` | pstack's per-role model choices, in Pi's `<provider>/<model-id>` dialect. The shared `~/.agents/pstack-models.md` is a fallback. Read it at task start. |
 
 To list the models Pi can actually reach, read `models.json`, or run
 `pi --list-models` if that flag exists in your version. Never write a slug you
@@ -132,7 +164,7 @@ its directory.
 | `.pi/SYSTEM.md` | Replaces Pi's default system prompt for the project. |
 | `.pi/APPEND_SYSTEM.md` | Adds instructions to the system prompt. |
 
-`/setup-pstack` writes the pointer to `~/.agents/pstack-models.md` into
+`/setup-pstack` writes the pointer to `~/.agents/pstack-models.pi.md` into
 `~/.pi/agent/AGENTS.md`. Run `/reload` after editing it.
 
 ## Invoking a skill

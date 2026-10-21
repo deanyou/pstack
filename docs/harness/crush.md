@@ -59,8 +59,9 @@ Crush routes per provider through `crush.json`:
 | `auto` or `inherit-parent` | The session's current model. |
 | A role value `<model> <effort>` | A model plus its reasoning level where the provider supports one. |
 
-Per-role pstack choices live in `~/.agents/pstack-models.md`. Read it at task
-start and map each role onto a model your providers actually serve. Mark any
+Per-role pstack choices live in `~/.agents/pstack-models.crush.md`, with the
+shared `~/.agents/pstack-models.md` as a fallback. Read it at task start and
+map each role onto a model your providers actually serve. Mark any
 role you cannot map as needing a choice rather than inventing a slug.
 `/setup-pstack` writes a pointer to it in `~/.config/crush/AGENTS.md` when
 that file exists.

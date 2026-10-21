@@ -47,7 +47,8 @@ A model is `<provider>/<model-id>`.
 | `auto` or `inherit-parent` | Omit `model` on the `task` call. |
 | A role value `<model> <effort>` | A slug, plus your harness's effort level where the provider supports one. |
 
-Per-role choices live in `~/.agents/pstack-models.md`. Read it at task start.
+Per-role choices live in `~/.agents/pstack-models.opencode.md`, with the
+shared `~/.agents/pstack-models.md` as a fallback. Read it at task start.
 `/setup-pstack` writes a pointer to it in `~/.config/opencode/AGENTS.md`.
 
 Provider credentials and endpoints are in `~/.config/opencode/opencode.json`

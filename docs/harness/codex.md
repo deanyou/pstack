@@ -92,8 +92,9 @@ The reasoning effort ladder in Codex is `minimal` > `low` > `medium` > `high` >
 | `medium` | `high` |
 | `small` | `medium` |
 
-Per-role model choices live in `~/.agents/pstack-models.md`. Read it at task
-start. `/setup-pstack` writes a pointer to it in `~/.codex/AGENTS.md`.
+Per-role model choices live in `~/.agents/pstack-models.codex.md`, with the
+shared `~/.agents/pstack-models.md` as a fallback. Read it at task start.
+`/setup-pstack` writes a pointer to it in `~/.codex/AGENTS.md`.
 
 A spawn only accepts models on its spawn allowlist. Never copy a model name
 from a skill or an old session without checking it against your current

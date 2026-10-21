@@ -13,7 +13,7 @@ Never copy Cursor's files onto `main` directly. That erases the edits.
 
 These paths exist only in this mirror. Cursor does not ship them, and a sync must not drop them. `mirror-paths.txt` lists them and the rsync in step 1 excludes them, so a sync never deletes them on the `upstream` branch either.
 
-- `docs/harness/README.md`, `docs/harness/codex.md`, `docs/harness/pi.md`, `docs/harness/opencode.md`, `docs/harness/cursor.md`, `docs/harness/gemini-cli.md`, `docs/harness/crush.md`, `docs/harness/generic.md`. `docs/harness/claude-code.md` is Cursor's, not this mirror's.
+- `docs/harness/README.md`, `docs/harness/codex.md`, `docs/harness/pi.md`, `docs/harness/omp.md`, `docs/harness/opencode.md`, `docs/harness/cursor.md`, `docs/harness/gemini-cli.md`, `docs/harness/crush.md`, `docs/harness/generic.md`. `docs/harness/claude-code.md` is Cursor's, not this mirror's.
 - `scripts/harness-detect.sh`.
 - `mirror-paths.txt` itself.
 

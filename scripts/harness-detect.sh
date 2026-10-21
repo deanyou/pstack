@@ -16,6 +16,9 @@
 #   2. the --harness flag
 #   3. the nearest ancestor process that looks like an agent
 #   4. the agent's own process markers in the environment
+#      (a marker inherited from a parent harness is only trusted when no
+#      harness process was found in step 3; a harness that exports no marker
+#      of its own, such as OMP, is found by process name instead)
 #   5. a harness-specific directory in the working tree
 #   6. "generic"
 #
@@ -60,6 +63,18 @@ elif [ -n "${PSTACK_HARNESS:-}" ]; then
   HARNESS="$PSTACK_HARNESS"
 fi
 
+# An unknown name would fall through the table below to the generic row and
+# print a path that does not exist. Warn and keep detecting instead.
+if [ -n "$HARNESS" ]; then
+  case "$HARNESS" in
+    claude-code | codex | pi | omp | opencode | gemini-cli | crush | cursor | generic) ;;
+    *)
+      echo "harness-detect.sh: unknown harness '$HARNESS'; detecting instead" >&2
+      HARNESS=""
+      ;;
+  esac
+fi
+
 # --- 3. the nearest ancestor that looks like an agent ----------------------
 #
 # An agent spawns the shell that runs this script, so the agent is an
@@ -79,6 +94,7 @@ if [ -z "$HARNESS" ] && command -v ps >/dev/null 2>&1; then
       opencode) HARNESS="opencode" ;;
       gemini) HARNESS="gemini-cli" ;;
       crush) HARNESS="crush" ;;
+      omp) HARNESS="omp" ;;
     esac
     if [ -z "$HARNESS" ]; then
       case "$args" in
@@ -88,6 +104,7 @@ if [ -z "$HARNESS" ] && command -v ps >/dev/null 2>&1; then
         *"gemini-cli"* | *"/gemini "*) HARNESS="gemini-cli" ;;
         *"charmbracelet/crush"* | *"charmland/crush"* | *"/crush "*) HARNESS="crush" ;;
         *"claude-code"* | *"/claude "*) HARNESS="claude-code" ;;
+        *"/omp "* | *"/omp --"*) HARNESS="omp" ;;
       esac
     fi
     [ -n "$HARNESS" ] && break
@@ -124,12 +141,13 @@ fi
 # --- 5. a harness directory in the working tree -----------------------------
 
 if [ -z "$HARNESS" ]; then
-  for dir in .claude .codex .pi .opencode .gemini .cursor; do
+  for dir in .claude .codex .pi .omp .opencode .gemini .cursor; do
     if [ -d "$dir" ]; then
       case "$dir" in
         .claude) HARNESS="claude-code" ;;
         .codex) HARNESS="codex" ;;
         .pi) HARNESS="pi" ;;
+        .omp) HARNESS="omp" ;;
         .opencode) HARNESS="opencode" ;;
         .gemini) HARNESS="gemini-cli" ;;
         .cursor) HARNESS="cursor" ;;
@@ -149,7 +167,7 @@ case "$HARNESS" in
   claude-code)
     SKILLS_PROJECT=".claude/skills/"
     SKILLS_USER="~/.claude/skills/"
-    MODELS_FILE="~/.agents/pstack-models.md"
+    MODELS_FILE="~/.claude/rules/pstack-models.md"
     ALWAYS_LOADED="~/.claude/rules/pstack-models.md"
     SUBAGENT_TOOL="Agent (subagent_type: general-purpose)"
     QUESTION_TOOL="AskUserQuestion"
@@ -159,7 +177,7 @@ case "$HARNESS" in
   codex)
     SKILLS_PROJECT=".codex/skills/"
     SKILLS_USER="~/.codex/skills/"
-    MODELS_FILE="~/.agents/pstack-models.md"
+    MODELS_FILE="~/.agents/pstack-models.codex.md"
     ALWAYS_LOADED="~/.codex/AGENTS.md"
     SUBAGENT_TOOL="spawn_agent"
     QUESTION_TOOL="none (ask in chat with numbered options)"
@@ -169,17 +187,31 @@ case "$HARNESS" in
   pi)
     SKILLS_PROJECT=".pi/skills/"
     SKILLS_USER="~/.pi/agent/skills/"
-    MODELS_FILE="~/.agents/pstack-models.md"
+    MODELS_FILE="~/.agents/pstack-models.pi.md"
     ALWAYS_LOADED="~/.pi/agent/AGENTS.md"
-    SUBAGENT_TOOL="none in core (pi-subagents package provides subagent)"
+    if [ -d "$HOME/.pi/agent/npm/node_modules/pi-subagents" ]; then
+      SUBAGENT_TOOL="subagent (pi-subagents installed)"
+    else
+      SUBAGENT_TOOL="none in core (pi install npm:pi-subagents adds subagent)"
+    fi
     QUESTION_TOOL="none (ask in chat with numbered options)"
     TODO_TOOL="none in core (use a Markdown checklist or TODO.md)"
     TRANSCRIPTS="~/.pi/agent/sessions/<cwd-slug>/*.jsonl"
     ;;
+  omp)
+    SKILLS_PROJECT=".agents/skills/"
+    SKILLS_USER="~/.agents/skills/"
+    MODELS_FILE="~/.agents/pstack-models.omp.md"
+    ALWAYS_LOADED="~/.agents/AGENTS.md"
+    SUBAGENT_TOOL="task (agent_type)"
+    QUESTION_TOOL="ask"
+    TODO_TOOL="todo"
+    TRANSCRIPTS="~/.omp/agent/sessions/<cwd-slug>/session.jsonl"
+    ;;
   opencode)
     SKILLS_PROJECT=".opencode/skill/ or .opencode/skills/"
     SKILLS_USER="~/.config/opencode/skills/"
-    MODELS_FILE="~/.agents/pstack-models.md"
+    MODELS_FILE="~/.agents/pstack-models.opencode.md"
     ALWAYS_LOADED="~/.config/opencode/AGENTS.md"
     SUBAGENT_TOOL="task (subagent_type: general)"
     QUESTION_TOOL="question"
@@ -199,7 +231,7 @@ case "$HARNESS" in
   gemini-cli)
     SKILLS_PROJECT=".gemini/skills/"
     SKILLS_USER="~/.gemini/skills/"
-    MODELS_FILE="~/.agents/pstack-models.md"
+    MODELS_FILE="~/.agents/pstack-models.gemini-cli.md"
     ALWAYS_LOADED="~/.gemini/GEMINI.md"
     SUBAGENT_TOOL="none (run each delegated step in sequence)"
     QUESTION_TOOL="none (ask in chat with numbered options)"
@@ -209,7 +241,7 @@ case "$HARNESS" in
   crush)
     SKILLS_PROJECT="./skills (via crush.json options.skills_paths)"
     SKILLS_USER="~/.config/crush/skills/"
-    MODELS_FILE="~/.agents/pstack-models.md"
+    MODELS_FILE="~/.agents/pstack-models.crush.md"
     ALWAYS_LOADED="AGENTS.md (project, written by crush init)"
     SUBAGENT_TOOL="none (run each delegated step in sequence)"
     QUESTION_TOOL="none (ask in chat with numbered options)"
