@@ -67,7 +67,7 @@ fi
 # print a path that does not exist. Warn and keep detecting instead.
 if [ -n "$HARNESS" ]; then
   case "$HARNESS" in
-    claude-code | codex | pi | omp | opencode | gemini-cli | crush | cursor | generic) ;;
+    claude-code | codex | pi | omp | peri | opencode | gemini-cli | crush | cursor | generic) ;;
     *)
       echo "harness-detect.sh: unknown harness '$HARNESS'; detecting instead" >&2
       HARNESS=""
@@ -95,6 +95,7 @@ if [ -z "$HARNESS" ] && command -v ps >/dev/null 2>&1; then
       gemini) HARNESS="gemini-cli" ;;
       crush) HARNESS="crush" ;;
       omp) HARNESS="omp" ;;
+      peri) HARNESS="peri" ;;
     esac
     if [ -z "$HARNESS" ]; then
       case "$args" in
@@ -105,6 +106,7 @@ if [ -z "$HARNESS" ] && command -v ps >/dev/null 2>&1; then
         *"charmbracelet/crush"* | *"charmland/crush"* | *"/crush "*) HARNESS="crush" ;;
         *"claude-code"* | *"/claude "*) HARNESS="claude-code" ;;
         *"/omp "* | *"/omp --"*) HARNESS="omp" ;;
+        *"/.peri/"*) HARNESS="peri" ;;
       esac
     fi
     [ -n "$HARNESS" ] && break
@@ -141,13 +143,14 @@ fi
 # --- 5. a harness directory in the working tree -----------------------------
 
 if [ -z "$HARNESS" ]; then
-  for dir in .claude .codex .pi .omp .opencode .gemini .cursor; do
+  for dir in .claude .codex .pi .omp .peri .opencode .gemini .cursor; do
     if [ -d "$dir" ]; then
       case "$dir" in
         .claude) HARNESS="claude-code" ;;
         .codex) HARNESS="codex" ;;
         .pi) HARNESS="pi" ;;
         .omp) HARNESS="omp" ;;
+        .peri) HARNESS="peri" ;;
         .opencode) HARNESS="opencode" ;;
         .gemini) HARNESS="gemini-cli" ;;
         .cursor) HARNESS="cursor" ;;
@@ -207,6 +210,16 @@ case "$HARNESS" in
     QUESTION_TOOL="ask"
     TODO_TOOL="todo"
     TRANSCRIPTS="~/.omp/agent/sessions/<cwd-slug>/session.jsonl"
+    ;;
+  peri)
+    SKILLS_PROJECT=".claude/skills/"
+    SKILLS_USER="~/.claude/skills/"
+    MODELS_FILE="~/.agents/pstack-models.peri.md"
+    ALWAYS_LOADED="~/.peri/CLAUDE.md"
+    SUBAGENT_TOOL="Agent (subagent_type: general-purpose)"
+    QUESTION_TOOL="AskUserQuestion"
+    TODO_TOOL="TodoWrite"
+    TRANSCRIPTS="~/.peri/threads/threads.db (SQLite)"
     ;;
   opencode)
     SKILLS_PROJECT=".opencode/skill/ or .opencode/skills/"

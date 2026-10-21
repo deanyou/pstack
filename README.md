@@ -51,6 +51,7 @@ paths, and model slugs.
 | Codex | [codex.md](docs/harness/codex.md) |
 | Pi | [pi.md](docs/harness/pi.md) |
 | OMP | [omp.md](docs/harness/omp.md) |
+| Peri | [peri.md](docs/harness/peri.md) |
 | OpenCode | [opencode.md](docs/harness/opencode.md) |
 | Gemini CLI | [gemini-cli.md](docs/harness/gemini-cli.md) |
 | Crush | [crush.md](docs/harness/crush.md) |

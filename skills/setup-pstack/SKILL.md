@@ -9,7 +9,7 @@ Write pstack's model settings, one model per role.
 
 - **Cursor:** `~/.cursor/rules/pstack-models.mdc`, an always-applied rule.
 - **Claude Code:** the same role lines in `~/.claude/rules/pstack-models.md`. Claude Code loads every `.md` in `~/.claude/rules/` into each new session, so no pointer is needed.
-- **Every other harness** (Codex, Pi, OMP, OpenCode, and others): `~/.agents/pstack-models.<harness>.md`, where `<harness>` is your harness's name (`codex`, `pi`, `omp`, `opencode`, `gemini-cli`, `crush`, `generic`). One file per harness, because model slugs are not portable: Codex takes a bare slug such as `gpt-6.1-sol`, Pi and OMP take `<provider>/<model-id>` such as `magpie/codex/gpt-6.1-sol`, and OpenCode takes its own provider ids. A file shared by every harness hands each one slugs it cannot resolve.
+- **Every other harness** (Codex, Pi, OMP, Peri, OpenCode, and others): `~/.agents/pstack-models.<harness>.md`, where `<harness>` is your harness's name (`codex`, `pi`, `omp`, `peri`, `opencode`, `gemini-cli`, `crush`, `generic`). One file per harness, because model slugs are not portable: Codex takes a bare slug such as `gpt-6.1-sol`, Pi and OMP take `<provider>/<model-id>` such as `magpie/codex/gpt-6.1-sol`, and OpenCode takes its own provider ids. A file shared by every harness hands each one slugs it cannot resolve.
 - **Shared fallback:** `~/.agents/pstack-models.md`. A harness with no file of its own reads this one. It holds whichever dialect last ran this skill, so treat its slugs as a starting point and map them onto your own.
 
 "The settings file" below means your harness's own file, then the shared fallback. When reading, take the first that exists. When writing, write your harness's own file, and refresh the shared fallback so a harness with no file yet has a starting point.
@@ -91,6 +91,7 @@ Write it into, in order of preference, the first path that exists:
 | Codex | `~/.codex/AGENTS.md` |
 | Pi | `~/.pi/agent/AGENTS.md` |
 | OMP | `~/.agents/AGENTS.md`, or `~/.omp/AGENTS.md` |
+| Peri | `~/.peri/CLAUDE.md` |
 | OpenCode | `~/.config/opencode/AGENTS.md` |
 | Gemini CLI | `~/.gemini/GEMINI.md` |
 | Crush | `AGENTS.md` in the project root (Crush has no global instruction file) |

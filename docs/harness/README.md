@@ -40,6 +40,7 @@ scripts/harness-detect.sh --json      # one JSON object
 | Codex | [codex.md](codex.md) | `.codex/skills/` | `~/.codex/skills/` | `~/.codex/AGENTS.md` |
 | Pi | [pi.md](pi.md) | `.pi/skills/` | `~/.pi/agent/skills/` | `~/.pi/agent/AGENTS.md` |
 | OMP | [omp.md](omp.md) | `.agents/skills/` | `~/.agents/skills/` | `~/.agents/AGENTS.md` |
+| Peri | [peri.md](peri.md) | `.claude/skills/` | `~/.claude/skills/` | `~/.peri/CLAUDE.md` |
 | OpenCode | [opencode.md](opencode.md) | `.opencode/skill/` | `~/.config/opencode/skills/` | `~/.config/opencode/AGENTS.md` |
 | Gemini CLI | [gemini-cli.md](gemini-cli.md) | `.gemini/skills/` | `~/.gemini/skills/` | `~/.gemini/GEMINI.md` |
 | Crush | [crush.md](crush.md) | `.crush/skills/` | `~/.config/crush/skills/` | `~/.config/crush/CRUSH.md` |
@@ -47,7 +48,8 @@ scripts/harness-detect.sh --json      # one JSON object
 | Anything else | [generic.md](generic.md) | `.agents/skills/` | `~/.agents/skills/` | whatever your harness loads |
 
 `claude-code.md` is Cursor's own file, shipped upstream. The rest are this
-mirror's.
+mirror's. Peri shares Claude Code's skill folders, so one install of the
+skills serves both.
 
 ## What every adapter covers
 
@@ -90,8 +92,8 @@ are in, or the skill's absolute path, and follow it.
 
 **Name a skill the way your harness names it.** Claude Code prefixes plugin
 commands, so `/pstack:poteto-mode`. Pi and OMP register skills as
-`/skill:<name>`. Cursor and most others use `/<name>`. The adapter lists the
-exact form.
+`/skill:<name>`. Cursor, Peri, and most others use `/<name>`. The adapter
+lists the exact form.
 
 **A missing capability is a skip, not a stop.** When a step needs something
 your harness lacks, put one line in your reply, `Skipped in <harness>: <step>.
