@@ -17,6 +17,7 @@ These paths exist only in this mirror. Cursor does not ship them, and a sync mus
 - `docs/pstack-usage-guide-2026-10-20.html`.
 - `scripts/harness-detect.sh`.
 - `skills/no-comments/references/comment-sicko.md`, the copy of Cursor's `agents/comment-sicko.md` that step 3 refreshes.
+- `.pensieve/`, the project's Pensieve data directory, plus the `AGENTS.md` and `CLAUDE.md` routing blocks that Pensieve keeps in sync.
 - `mirror-paths.txt` itself.
 
 If Cursor later ships a file at one of these paths, the merge conflicts. Resolve it by keeping both: Cursor's file wins the content, and this mirror's version is folded into it.
