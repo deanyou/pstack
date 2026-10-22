@@ -12,8 +12,8 @@
 #   harness-detect.sh --harness X  force a harness instead of detecting
 #
 # Detection order, first match wins:
-#   1. $PSTACK_HARNESS
-#   2. the --harness flag
+#   1. the --harness flag
+#   2. $PSTACK_HARNESS
 #   3. the nearest ancestor process that looks like an agent
 #   4. the agent's own process markers in the environment
 #      (a marker inherited from a parent harness is only trusted when no
@@ -42,7 +42,7 @@ while [ $# -gt 0 ]; do
       ;;
     --harness=*) FORCED="${1#--harness=}" ;;
     -h|--help)
-      sed -n '3,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      awk 'NR > 2 && /^#/ { sub(/^# ?/, ""); print; next } NR > 2 { exit }' "${BASH_SOURCE[0]}"
       exit 0
       ;;
     *)
@@ -88,7 +88,11 @@ if [ -z "$HARNESS" ] && command -v ps >/dev/null 2>&1; then
     hops=$((hops + 1))
     comm=$(ps -o comm= -p "$pid" 2>/dev/null | tr -d '[:space:]')
     args=$(ps -o args= -p "$pid" 2>/dev/null)
-    case "$comm" in
+    # Linux reports the executable name; macOS reports its full path. Match
+    # on the last path segment so the same table works on both.
+    comm_base=""
+    [ -n "$comm" ] && comm_base=$(basename -- "$comm" 2>/dev/null)
+    case "$comm_base" in
       claude | claude-code) HARNESS="claude-code" ;;
       codex) HARNESS="codex" ;;
       opencode) HARNESS="opencode" ;;
@@ -165,6 +169,12 @@ fi
 # --- the harness table ------------------------------------------------------
 #
 # Keep these rows in step with docs/harness/<name>.md.
+#
+# ALWAYS_LOADED names the file a harness loads into every session. For
+# Cursor and Claude Code that file holds the role lines itself, so it is the
+# same path as MODELS_FILE. For every other harness it is the harness's
+# instruction file, which carries a pointer to the models file rather than
+# the roles.
 
 case "$HARNESS" in
   claude-code)
@@ -199,7 +209,7 @@ case "$HARNESS" in
     fi
     QUESTION_TOOL="none (ask in chat with numbered options)"
     TODO_TOOL="none in core (use a Markdown checklist or TODO.md)"
-    TRANSCRIPTS="~/.pi/agent/sessions/<cwd-slug>/*.jsonl"
+    TRANSCRIPTS="~/.pi/agent/sessions/--<cwd-slug>--/*.jsonl"
     ;;
   omp)
     SKILLS_PROJECT=".agents/skills/"
@@ -209,7 +219,7 @@ case "$HARNESS" in
     SUBAGENT_TOOL="task (agent_type)"
     QUESTION_TOOL="ask"
     TODO_TOOL="todo"
-    TRANSCRIPTS="~/.omp/agent/sessions/<cwd-slug>/session.jsonl"
+    TRANSCRIPTS="~/.omp/agent/sessions/--<cwd-slug>--/session.jsonl"
     ;;
   peri)
     SKILLS_PROJECT=".claude/skills/"

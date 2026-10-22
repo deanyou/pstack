@@ -16,6 +16,7 @@ These paths exist only in this mirror. Cursor does not ship them, and a sync mus
 - `docs/harness/README.md`, `docs/harness/codex.md`, `docs/harness/pi.md`, `docs/harness/omp.md`, `docs/harness/peri.md`, `docs/harness/opencode.md`, `docs/harness/cursor.md`, `docs/harness/gemini-cli.md`, `docs/harness/crush.md`, `docs/harness/generic.md`. `docs/harness/claude-code.md` is Cursor's, not this mirror's.
 - `docs/pstack-usage-guide-2026-10-20.html`.
 - `scripts/harness-detect.sh`.
+- `skills/no-comments/references/comment-sicko.md`, the copy of Cursor's `agents/comment-sicko.md` that step 3 refreshes.
 - `mirror-paths.txt` itself.
 
 If Cursor later ships a file at one of these paths, the merge conflicts. Resolve it by keeping both: Cursor's file wins the content, and this mirror's version is folded into it.
