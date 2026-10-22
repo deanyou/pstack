@@ -26,6 +26,8 @@ the working tree.
 | `Grep`, `Glob` | The shell tool with `rg` and `fd`. |
 | Run another pstack skill | Read the sibling skill's `SKILL.md` and follow it. See **Skills** below. |
 
+Codex shell commands run in zsh. Read pipeline statuses from the `pipestatus` array immediately after the pipeline, for example `status=$pipestatus[1]` for the first command. Bash's `PIPESTATUS` variable is empty in zsh.
+
 ### Multi-agent must be enabled
 
 Collaboration tools require the `multi_agent` feature. Check it before the
