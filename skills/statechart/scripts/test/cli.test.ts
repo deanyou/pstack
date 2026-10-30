@@ -103,6 +103,32 @@ for (const name of fs.readdirSync(corpus)) {
 
 const launcher = path.join(here, "../statechart");
 
+test("a configured runtime works without Java or TLC environment variables", () => {
+  const config = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-config-"));
+  fs.mkdirSync(path.join(config, "statechart"));
+  fs.writeFileSync(
+    path.join(config, "statechart/runtime.json"),
+    JSON.stringify({ jar: path.join(here, "java.ts"), java: path.join(here, "java.ts") }),
+  );
+  const dir = path.join(corpus, "MediaPlayer");
+  const r = run(dir, {
+    env: { XDG_CONFIG_HOME: config, TLA2TOOLS: undefined, JAVA: undefined },
+  });
+  assert.equal(r.stderr, "");
+  assert.equal(r.status, 1);
+  assert.equal(read(path.join(r.out, "chart.mmd")), read(path.join(dir, "chart.mmd")));
+});
+
+test("explicit runtime environment variables take precedence over configuration", () => {
+  const config = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-config-"));
+  fs.mkdirSync(path.join(config, "statechart"));
+  fs.writeFileSync(path.join(config, "statechart/runtime.json"), "invalid JSON");
+  const dir = path.join(corpus, "MediaPlayer");
+  const r = run(dir, { env: { XDG_CONFIG_HOME: config } });
+  assert.equal(r.stderr, "");
+  assert.equal(r.status, 1);
+});
+
 const launcherTools = () => {
   const bin = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-bin-"));
   for (const tool of ["dirname", "readlink", "sed"]) {

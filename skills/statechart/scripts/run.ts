@@ -193,6 +193,22 @@ const runToFiles = (
 async function findTlc(cwd: string) {
   const { TLA2TOOLS, JAVA } = process.env;
   if (TLA2TOOLS) return { jar: TLA2TOOLS, java: JAVA || "java" };
+  const runtimeFile = path.join(
+    process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"),
+    "statechart",
+    "runtime.json",
+  );
+  if (fs.existsSync(runtimeFile)) {
+    const runtime = JSON.parse(fs.readFileSync(runtimeFile, "utf8"));
+    if (
+      typeof runtime.jar !== "string" ||
+      !path.isAbsolute(runtime.jar) ||
+      typeof runtime.java !== "string" ||
+      !path.isAbsolute(runtime.java)
+    )
+      throw new Error(`${runtimeFile} must contain absolute jar and java paths.`);
+    return { jar: runtime.jar, java: JAVA || runtime.java };
+  }
   const mise = (...args: string[]) =>
     runChild("mise", args, { cwd, env: { ...process.env, MISE_CEILING_PATHS: cwd } });
   const where = () =>
