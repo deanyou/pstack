@@ -1,0 +1,20 @@
+---
+title: "Statechart runtime selection"
+---
+stateDiagram-v2
+  s0: Start
+  s1: Check local configuration
+  s2: Ready
+  s3: Check installed tools
+  s4: Configuration or install error
+  s5: Install pinned tools
+  [*] --> s0
+  s0 --> s1: no explicit TLC path
+  s0 --> s2: use explicit environment paths
+  s1 --> s3: no local configuration
+  s1 --> s4: reject invalid configuration
+  s1 --> s2: use configured paths [valid configuration]
+  s3 --> s5: tools unavailable
+  s3 --> s2: use installed tools
+  s5 --> s4: installation fails
+  s5 --> s2: installation succeeds
