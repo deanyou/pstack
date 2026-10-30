@@ -193,12 +193,11 @@ const runToFiles = (
 async function findTlc(cwd: string) {
   const { TLA2TOOLS, JAVA } = process.env;
   if (TLA2TOOLS) return { jar: TLA2TOOLS, java: JAVA || "java" };
-  const runtimeFile = path.join(
-    process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"),
-    "statechart",
-    "runtime.json",
-  );
-  if (fs.existsSync(runtimeFile)) {
+  const runtimeFile = [process.env.XDG_CONFIG_HOME, path.join(os.homedir(), ".config")]
+    .filter((dir): dir is string => Boolean(dir))
+    .map((dir) => path.join(dir, "statechart", "runtime.json"))
+    .find((file) => fs.existsSync(file));
+  if (runtimeFile) {
     const runtime = JSON.parse(fs.readFileSync(runtimeFile, "utf8"));
     if (
       typeof runtime.jar !== "string" ||

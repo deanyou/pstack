@@ -12,7 +12,8 @@ docs/harness/gemini-cli.md
 docs/harness/crush.md
 docs/harness/generic.md
 docs/pstack-usage-guide-2026-10-20.html
-scripts/
+/scripts/
+skills/statechart/examples/runtime-lookup/
 # Copied from Cursor's agents/comment-sicko.md by step 3 of MIRROR.md.
 skills/no-comments/references/comment-sicko.md
 # Pensieve project data and its instruction-file routing blocks.
