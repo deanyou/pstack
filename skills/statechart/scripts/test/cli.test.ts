@@ -129,6 +129,70 @@ test("explicit runtime environment variables take precedence over configuration"
   assert.equal(r.status, 1);
 });
 
+test("JAVA overrides the configured executable without an explicit TLC path", () => {
+  const config = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-config-"));
+  fs.mkdirSync(path.join(config, "statechart"));
+  fs.writeFileSync(
+    path.join(config, "statechart/runtime.json"),
+    JSON.stringify({ jar: path.join(here, "java.ts"), java: "/unavailable/java" }),
+  );
+  const dir = path.join(corpus, "MediaPlayer");
+  const r = run(dir, { env: { XDG_CONFIG_HOME: config, TLA2TOOLS: undefined } });
+  assert.equal(r.stderr, "");
+  assert.equal(r.status, 1);
+});
+
+for (const [name, contents] of [
+  ["malformed JSON", "{"],
+  ["relative tool paths", JSON.stringify({ jar: "tools.jar", java: "bin/java" })],
+]) {
+  test(`local runtime configuration with ${name} stops before running tools`, () => {
+    const config = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-config-"));
+    fs.mkdirSync(path.join(config, "statechart"));
+    fs.writeFileSync(path.join(config, "statechart/runtime.json"), contents);
+    const r = run(path.join(corpus, "MediaPlayer"), {
+      env: { XDG_CONFIG_HOME: config, TLA2TOOLS: undefined, JAVA: undefined },
+    });
+    assert.equal(r.status, 2);
+    assert.notEqual(r.stderr, "");
+    assert.deepEqual(r.files, []);
+    assert.deepEqual(r.configs, {});
+  });
+}
+
+for (const invalidXdg of [false, true]) {
+  test(`a ${invalidXdg ? "malformed" : "missing"} XDG configuration ${
+    invalidXdg ? "stops before" : "permits"
+  } default configuration lookup`, () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-default-"));
+    const home = path.join(dir, "home");
+    const xdg = path.join(dir, "xdg");
+    const defaultConfig = path.join(home, ".config/statechart");
+    fs.mkdirSync(defaultConfig, { recursive: true });
+    fs.writeFileSync(
+      path.join(defaultConfig, "runtime.json"),
+      JSON.stringify({ jar: path.join(here, "java.ts"), java: path.join(here, "java.ts") }),
+    );
+    if (invalidXdg) {
+      fs.mkdirSync(path.join(xdg, "statechart"), { recursive: true });
+      fs.writeFileSync(path.join(xdg, "statechart/runtime.json"), "{");
+    }
+    const preload = path.join(dir, "home.mjs");
+    fs.writeFileSync(preload, `import os from "node:os"; os.homedir = () => ${JSON.stringify(home)};`);
+    const r = run(path.join(corpus, "MediaPlayer"), {
+      env: {
+        XDG_CONFIG_HOME: xdg,
+        TLA2TOOLS: undefined,
+        JAVA: undefined,
+        NODE_OPTIONS: `--import=${preload}`,
+      },
+    });
+    assert.equal(r.status, invalidXdg ? 2 : 1);
+    if (invalidXdg) assert.deepEqual(r.files, []);
+    else assert.equal(r.stderr, "");
+  });
+}
+
 const launcherTools = () => {
   const bin = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-bin-"));
   for (const tool of ["dirname", "readlink", "sed"]) {

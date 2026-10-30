@@ -19,8 +19,10 @@ Work in a scratch folder outside the repo. Write a TLA+ spec and its config. The
 `scripts/statechart.ts` is TypeScript, so run it with a runtime that can execute TypeScript.
 
 Runtime lookup uses `TLA2TOOLS` and `JAVA` first, then
-`$XDG_CONFIG_HOME/statechart/runtime.json` (default:
-`~/.config/statechart/runtime.json`), then mise. The JSON file contains absolute
+`$XDG_CONFIG_HOME/statechart/runtime.json`, then
+`~/.config/statechart/runtime.json` if the XDG file does not exist, then mise.
+An existing invalid configuration stops lookup rather than being skipped.
+The JSON file contains absolute
 `jar` and `java` paths. `JAVA` can override the configured Java executable.
 With a locally configured runtime, no runtime download is needed.
 Otherwise, the first run installs TLC and Java with mise and needs the network.
