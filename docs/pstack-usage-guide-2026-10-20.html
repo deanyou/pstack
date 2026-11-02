@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>pstack 使用指南 — 12 个工程 skill 怎么用（基于 deanyou/pstack）</title>
+<title>pstack 使用指南 — v0.15.36 的工作流程、驗證與跨工具設定</title>
 <style>
   :root{
     --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --line:#2b3646;
@@ -11,7 +11,7 @@
     --green:#3fb950; --blue:#58a6ff; --purple:#bc8cff; --amber:#d29922; --red:#f85149; --teal:#39c5cf;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;line-height:1.7}
   .wrap{max-width:1060px;margin:0 auto;padding:0 24px 80px}
   header.hero{padding:64px 0 40px;border-bottom:1px solid var(--line)}
   .kicker{display:inline-block;font-size:12px;letter-spacing:.2em;color:var(--teal);text-transform:uppercase;margin-bottom:14px}
@@ -20,6 +20,9 @@
   .lede{font-size:17px;color:var(--dim);max-width:760px;margin:0}
   .lede b{color:var(--txt)}
   .meta{margin-top:18px;font-size:13px;color:var(--faint)}
+  a{color:var(--blue);text-underline-offset:3px}
+  a:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+  h2[id]{scroll-margin-top:16px}
   .meta a{color:var(--blue);text-decoration:none}
   h2{font-size:24px;margin:56px 0 8px;padding-top:8px}
   h2 .n{display:inline-block;min-width:34px;height:34px;line-height:34px;text-align:center;border-radius:9px;background:var(--panel2);border:1px solid var(--line);color:var(--teal);font-size:16px;margin-right:10px}
@@ -68,7 +71,7 @@
   @keyframes blk{50%{opacity:0}}
   footer{margin-top:70px;border-top:1px solid var(--line);padding-top:20px;font-size:12.5px;color:var(--faint)}
   footer a{color:var(--blue);text-decoration:none}
-  @media(max-width:640px){.frow{grid-template-columns:1fr}.frow .task{border-right:none;border-bottom:1px solid var(--line)}h1{font-size:28px}}
+  @media(max-width:640px){.grid,.lessons,.steps,.frow{grid-template-columns:1fr}.card,.step,.lesson,.combo{min-width:0;overflow-wrap:anywhere}.frow .task{border-right:none;border-bottom:1px solid var(--line)}h1{font-size:28px}}
 </style>
 </head>
 <body>
@@ -76,12 +79,12 @@
 
 <header class="hero">
   <span class="kicker">PSTACK · Agent Engineering Skills</span>
-  <h1>让 agent 写<span class="accent">更少、但更高质量</span>的代码</h1>
-  <p class="lede">pstack 是 poteto（React 核心团队、曾在 Meta / Netflix / Cursor 工作）每天用来交付高质量代码的一套 <b>Agent Skill</b>。核心理念：<b>吞吐量没有质量毫无意义</b>——先钻深，再求快。当 agent 能写出可验证的好代码，你才敢真正并行派发多个 agent，这就是 poteto 说的 <b>fearless parallelism</b>。</p>
-  <div class="meta">你的 fork <a href="https://github.com/deanyou/pstack">deanyou/pstack</a>（cursor 官方 <a href="https://github.com/cursor/plugins/tree/main/pstack">cursor/plugins/pstack</a> 的 harness-neutral 镜像）· 上游 v0.15.29 · 56 个 skill · 本页覆盖你已装的 12 个核心 skill + §7 的 4 个 verification skill</div>
+  <h1>讓 agent 寫<span class="accent">更少、品質更高</span>的程式碼</h1>
+  <p class="lede">pstack 把理解、實作、評審與驗證整理成可重複執行的工作流程。先說清楚目標，再用真實輸出驗收，讓平行工作的結果也能逐項查核。</p>
+  <div class="meta"><a href="https://github.com/deanyou/pstack">deanyou/pstack</a> · <a href="https://github.com/cursor/plugins/tree/ae5650f/pstack">Cursor pstack 的跨 harness 鏡像</a> · v0.15.36 · 58 個 skills（含 24 個 principles）· 23 個 playbooks · 更新：2026-11-02</div>
 </header>
-<h2><span class="n">▶</span>动图：一次派单的生命周期</h2>
-<p class="sub">live-panel 生成的实时动图：左侧五种任务组合轮流点亮并打出当前组合的 skill，中间是 <b>用户指令 → pi-task 派单 → agent 执行 → 三道验证门 → 产物</b> 的完整链路，底部 session log 滚动，计数器与日志同源。图中数字为示意（illustrative），非真实遥测；另有视频版 <code>pstack-dispatch.mp4</code>。</p>
+<h2><span class="n">▶</span>舊 Pi 派單流程：動畫示意</h2>
+<p class="sub">保留初版的 Pi 派單動畫，展示「指令 → 派發 → 執行 → 驗證 → 產物」。其中的本地路徑、模型、12 個 skill 組合與數字都是舊環境的教學示意；目前的一般任務入口與驗證規則以下方指南為準。</p>
 <iframe title="pstack 派单中枢动图" srcdoc="&lt;!doctype html&gt;
 &lt;html lang=&quot;en&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;
 &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
@@ -481,145 +484,333 @@ loadConfig().then(boot).catch(fail);
 " style="width:100%;max-width:720px;aspect-ratio:4/5;border:1px solid var(--line);border-radius:12px;display:block;margin:6px auto 10px;background:#14171c"></iframe>
 
 
-<h2><span class="n">1</span>安装：一条命令进 Pi</h2>
-<p class="sub">pstack 就是一堆纯文本的 Agent Skill（<code>skills/&lt;name&gt;/SKILL.md</code>），不需要 Cursor。用官方 skills CLI 装进任何 agent：</p>
-<pre><span class="c"># 交互式：选 skill → 选 agent（Pi / Claude Code / Codex / OpenCode / Gemini CLI / Crush…）</span>
-<span class="k">npx</span> <span class="s">skills add deanyou/pstack</span>
+<nav class="note" aria-label="指南目錄"><b>快速跳轉：</b> <a href="#install">安裝與設定</a> · <a href="#skills">依情境選 skill</a> · <a href="#tasks">任務提示詞</a> · <a href="#lessons">派單紀律</a> · <a href="#verification">驗證與 statechart</a> · <a href="#start">上手三步</a> · <a href="#mirror">鏡像維護</a></nav>
 
-<span class="c"># 你的 Pi 派单方式（session-resume）：按任务挂 skill，可重复指定</span>
-<span class="k">~/workspace/pi/bin/pi-task</span> <span class="s">muse-fix-20261020</span> <span class="s">"修复 virtuoso-cli 的 X11 cookie bug"</span> \
-  <span class="k">--skill</span> ~/workspace/custom-connectors/custom.legacy-deepseek/dsh-home/skills/tdd \
-  <span class="k">--skill</span> ~/workspace/custom-connectors/custom.legacy-deepseek/dsh-home/skills/blast-radius</pre>
-<div class="note"><b>你的现状：</b>12 个核心 skill 已拷到 <code>~/workspace/custom-connectors/custom.legacy-deepseek/dsh-home/skills/</code>（拷的不是软链；拷时删掉了 frontmatter 里的 <code>disable-model-invocation: true</code>，headless 才能用）。版本上：你的 fork <code>deanyou/pstack</code> 已同步上游 <b>v0.15.29</b>，还多了自有提交（见下方"fork 增量"）；本机 <code>~/workspace/vendor/pstack</code> 镜像还停在 v0.15.28；dsh-home 里的 12 个副本仍是更早拷的，刷新方法不变：从 fork 重拷这 12 个 + 删那行 frontmatter。</div>
-
-<p class="sub" style="margin-top:28px"><b style="color:var(--txt)">你的 fork 在上游之外多了什么</b>——2026-10-21 的提交 <code>6f7bd80</code> 给整套 pstack 加了 harness 适配层，外加一个 Linux 修复。原版 pstack 是用 Cursor 的名字写的（工具名、路径、模型 slug 都是 Cursor 的说法），这层适配就是把它翻译给其他 harness 的机制：</p>
+<h2 id="install"><span class="n">1</span>安裝：先選 harness，再設定模型</h2>
+<p class="sub">pstack 是一套 Agent Skills。這個鏡像把工具名、路徑與模型設定對應到各個 harness；實際能否平行派發、切換模型或訂閱事件，仍取決於執行工具提供的能力。</p>
+<pre><span class="c"># 終端：從這個鏡像選擇 skills 與安裝目標</span>
+<span class="k">npx</span> <span class="s">skills add deanyou/pstack</span></pre>
+<p>安裝後，在聊天輸入 <code>/setup-pstack</code>，選推理預算與各角色的模型。設定對新對話生效；<code>auto</code> 或 <code>inherit-parent</code> 代表沿用主對話模型。評審名單中的每個項目各占一個席位，沿用主模型不會減少席位數。</p>
+<div class="note"><b>指令名稱依安裝方式而異：</b>Claude Code 外掛版通常是 <code>/pstack:poteto-mode</code>；直接安裝 skill 可用 <code>/poteto-mode</code>。Pi / OMP 使用 <code>/skill:poteto-mode</code>。以斜線選單實際列出的名稱為準。</div>
 <div class="grid">
-  <div class="card"><h3>docs/harness/ 适配文档</h3>
-    <p>8 份适配文档：<b>Claude Code / Codex / Pi / OpenCode / Gemini CLI / Crush / Cursor / generic</b>（兜底）。每份是一张对照表：工具名、文件路径、模型 slug 在这个 harness 里叫什么。其中 <b>pi.md 最长（167 行）</b>——正对你的主力 harness。</p>
-    <div class="trigger">位置：<code>docs/harness/README.md</code> 是索引</div></div>
-  <div class="card"><h3>scripts/harness-detect.sh</h3>
-    <p><b>检测脚本</b>：跑一下就知道当前在哪个 harness，输出 harness 名、对应 adapter 路径、pstack 该用的关键路径（支持 <code>--json</code> / <code>--export</code>）。识别顺序：<code>PSTACK_HARNESS</code> 环境变量 → <code>--harness</code> 参数 → 祖先进程 → 环境标记 → 工作树目录 → generic。支持 Claude Code、Codex、Pi、OMP、OpenCode、Gemini CLI、Crush、Cursor。<code>poteto-mode</code> 已改为引用它。</p>
-    <div class="trigger">用法：在 pstack 检出目录里跑 <code>scripts/harness-detect.sh</code></div></div>
-  <div class="card"><h3>模型配置：每个 harness 一份</h3>
-    <p><code>setup-pstack</code> 第 6 步把模型角色表写到 <b><code>~/.agents/pstack-models.&lt;harness&gt;.md</code></b>（Cursor 用 <code>~/.cursor/rules/pstack-models.mdc</code>，Claude Code 用 <code>~/.claude/rules/pstack-models.md</code>），各 harness 的常驻文件（always-loaded）里只放一行指针，<code>~/.agents/pstack-models.md</code> 作为共享兜底。<b>按 harness 分檔是因為模型名不通用</b>：Codex 用裸名（<code>gpt-6.1-sol</code>），Pi / OMP 用 <code>&lt;provider&gt;/&lt;model-id&gt;</code>（<code>magpie/codex/gpt-6.1-sol</code>），Claude Code 用 <code>&lt;model&gt; &lt;effort&gt;</code>（<code>opus xhigh</code>）——共用一份檔會讓每個 harness 拿到自己解析不了的 slug，技能只好默默退回預設值。</p></div>
-  <div class="card"><h3>mirror-paths.txt 同步保护</h3>
-    <p>fork 自有文件登记在 <code>mirror-paths.txt</code> 里，<code>MIRROR.md</code> 的 rsync 同步上游时排除它们，<b>不被 <code>--delete</code> 误删</b>。这是 fork 能长期跟上游、又不丢自有改动的机制。</p></div>
-  <div class="card"><h3>GNU/Linux 修复（PR #1）</h3>
-    <p><code>poteto-mode</code> 的 <code>worktree-audit.sh</code> 原先在 GNU/Linux 上跑不了，fork 修好了。你在 Linux 上用，这是实打实的一条。</p></div>
+  <div class="card"><h3>10 份 harness 對照文件</h3><p>涵蓋 Claude Code、Codex、Pi、OMP、Peri、OpenCode、Gemini CLI、Crush、Cursor 與 generic。Peri 與 Claude Code 共用 skill 目錄。<a href="harness/README.md">adapter 索引</a>列出工具、模型與檔案位置。</p></div>
+  <div class="card"><h3>先偵測，再讀 adapter</h3><p>在 checkout 根目錄執行 <code>bash scripts/harness-detect.sh --json</code>。優先序是 <code>--harness</code> → <code>PSTACK_HARNESS</code> → 最近的祖先 agent 行程 → 環境標記 → 工作樹目錄 → generic。</p></div>
+  <div class="card"><h3>每個 harness 一份模型設定</h3><p>Claude Code 讀 <code>~/.claude/rules/pstack-models.md</code>；Cursor 讀 <code>~/.cursor/rules/pstack-models.mdc</code>。兩者由自己的規則系統載入。</p><p>其餘讀 <code>~/.agents/pstack-models.&lt;harness&gt;.md</code>，缺檔才讀共享兜底 <code>~/.agents/pstack-models.md</code>，並由常駐指令檔指向設定。</p></div>
+  <div class="card"><h3>模型名稱不能跨工具照抄</h3><p>Codex、Pi / OMP、Claude Code 各有自己的命名與推理預算格式。沿用該 harness 設定檔中的有效名稱；模型被拒絕時依 skill 的退回規則處理，並說明實際使用的模型。</p></div>
 </div>
+<p class="sub" style="margin-top:18px">舊版頁面記錄過 Linux VM 的 <code>pi-task</code> 與 dsh-home 副本。這些是個人派單環境，不是 pstack 的安裝前提；本次更新未重新檢查遠端副本版本。複製安裝需自行刷新，符號連結則跟隨其指向的 checkout。</p>
 
-<h2><span class="n">2</span>12 个 skill：按用途认领</h2>
-<p class="sub">每个 skill 都是一个独立的工作流说明书。agent 读到它，就按里面的步骤干活。</p>
-
+<h2 id="skills"><span class="n">2</span>依情境選 skill</h2>
+<p class="sub">一般任務先用 <code>/poteto-mode</code>：說清楚目標與完成檢查，由它選 playbook。以下保留原本的 12 個常用入口，再補上設計、平行工作與進度回顧工具；這不是完整 skill 清單。</p>
 <div class="grid">
-  <div class="card"><h3>how <span class="tag t-understand">理解</span></h3>
-    <p>回答<b>"X 是怎么工作的"</b>。改代码前先做代码走读：子系统架构、运行时流程、归属/分层问题（"这该放哪层""哪个包拥有它"）。产出是资深工程师 onboarding 级别的<b>心智模型</b>，不是注释版源码。</p>
-    <div class="trigger">触发：改动前先理解 · <code>"how does X work"</code> · <code>"where should this live"</code></div><div class="term" id="term-how"></div></div>
-  <div class="card"><h3>why <span class="tag t-understand">理解</span></h3>
-    <p>回答<b>"为什么长成这样"</b>。how 的搭档：how 讲代码做什么，why 讲什么力量把它塑造成这样。并行查证据（git、issue、文档、聊天记录、可观测性、错误追踪），<b>区分"我知道"和"我在推测"</b>，带置信度措辞输出。</p>
-    <div class="trigger">触发：设计依据 · <code>"why we picked Y"</code> · 回归复盘 · 阈值从哪来</div><div class="term" id="term-why"></div></div>
-  <div class="card"><h3>teach <span class="tag t-understand">理解</span></h3>
-    <p>把一坨工作<b>讲到人真懂</b>。跑一遍 how + why，再编织成按你节奏的 plain 讲解。目标是理解，不是改代码。适合接手陌生子系统。</p>
-    <div class="trigger">触发：<code>"teach me this"</code> · <code>"help me really understand X"</code></div><div class="term" id="term-teach"></div></div>
-  <div class="card"><h3>recall <span class="tag t-understand">理解</span></h3>
-    <p><b>开工前先重建上下文</b>：从聊天记录、实时状态和共享记录里拼出"现在到哪了、下一步是什么"的紧凑简报。别只看自己的 transcript——长 bug 尾巴的故事多半在别人的 issue 和聊天里。</p>
-    <div class="trigger">触发：<code>"where did I leave off"</code> · <code>"catch me up"</code></div><div class="term" id="term-recall"></div></div>
-  <div class="card"><h3>interrogate <span class="tag t-review">评审</span></h3>
-    <p><b>多模型对抗评审</b>：每个配置的模型拿同一份 prompt + rubric，从独立角度撕你的改动。对抗信号来自<b>模型多样性</b>，不是分配人设。产出是综合裁决，<b>不自动改代码</b>。</p>
-    <div class="trigger">触发：<code>"tear this apart"</code> · <code>"find blind spots"</code> · stress test</div><div class="term" id="term-interrogate"></div></div>
-  <div class="card"><h3>blast-radius <span class="tag t-review">评审</span></h3>
-    <p>找出<b>改动在 diff 之外会炸掉什么</b>。列调用方不算本事（grep 一秒的事），本事是找出 grep 看不见的 breakage。关键纪律：<b>别信自己的分析报告</b>——把结论依赖的一两个事实找出来，用<b>跑真代码</b>证明，而不是写下来。</p>
-    <div class="trigger">触发：<code>"what could this break"</code> · 评审不放心的小 diff</div><div class="term" id="term-blast"></div></div>
-  <div class="card"><h3>tdd <span class="tag t-discipline">工程纪律</span></h3>
-    <p><b>先让 bug 可执行</b>：有便宜的本地测试路径时，先写出"修前失败、修后通过"的聚焦回归测试再动生产代码。没便宜测试路径时<b>别硬造</b>——用最近的可用验证代替。</p>
-    <div class="trigger">触发：修 bug 且有明确便宜测试 · 回归测试</div><div class="term" id="term-tdd"></div></div>
-  <div class="card"><h3>principle-prove-it-works <span class="tag t-discipline">工程纪律</span></h3>
-    <p><b>收工前验实物</b>：对着真实产物验证，不认代理指标——不看"编译过了"、不看 agent 的自我报告。跑起来、走完真实路径、读实际值。验证失败先怀疑<b>观测方法</b>，再怀疑系统。</p>
-    <div class="trigger">触发：任何任务收尾 · 验收标准</div><div class="term" id="term-prove"></div></div>
-  <div class="card"><h3>show-me-your-work <span class="tag t-discipline">工程纪律</span></h3>
-    <p>长跑/无人值守任务留<b>可审计的决策轨迹</b>：一个 TSV，一行一个决策（时间、阶段、做了什么、为什么、证据指针、结果）。证据是 commit SHA、文件行号、产物路径，<b>不是段落</b>。</p>
-    <div class="trigger">触发：<code>/show-me-your-work</code> · 多阶段任务 · 离开后回来要能审计</div><div class="term" id="term-show"></div></div>
-  <div class="card"><h3>figure-it-out <span class="tag t-discipline">工程纪律</span></h3>
-    <p>没有现成 playbook 时<b>先设计 playbook 再动手</b>：大迁移、多部件改动。先给出可证伪的完成定义、量化 scope、定严谨度（宁高勿低），跑假设循环，全程记决策日志。</p>
-    <div class="trigger">触发：<code>"figure it out"</code> · 大迁移 · 无章可循的大改动</div><div class="term" id="term-figure"></div></div>
-  <div class="card"><h3>unslop <span class="tag t-write">写作</span></h3>
-    <p><b>删 AI 腔</b>：扫固定模式并重写——"delve / crucial / tapestry"类词汇、"serves as"式花哨 is、"Not just X, but Y"句式、硬凑三段式、"Experts believe"式模糊归因。保义、合语气。</p>
-    <div class="trigger">触发：任何对外文本 · 新功能交付默认挂上</div><div class="term" id="term-unslop"></div></div>
-  <div class="card"><h3>reflect <span class="tag t-reflect">反思</span></h3>
-    <p>只在你说 <code>reflect</code> 时用：起三个并行评审 agent 挖当前会话的<b> durable 教训</b>，每条教训落成对某个 skill 的<b>具体修改</b>。一次性经验不算教训，不写进去。</p>
-    <div class="trigger">触发：你亲口说 <code>reflect</code></div><div class="term" id="term-reflect"></div></div>
+  <div class="card"><h3>poteto-mode <span class="tag t-discipline">任務入口</span></h3><p>選擇符合任務的 playbook，依序執行其步驟與相關 skills。跳過的步驟留下原因。要它只規劃，就明說「先出計畫，暫不實作」。</p><div class="trigger">來源：<a href="../skills/poteto-mode/SKILL.md">poteto-mode/SKILL.md</a></div></div>
+  <div class="card"><h3>how <span class="tag t-understand">理解</span></h3><p>回答「現在怎麼運作、程式該放哪一層」。追實際呼叫鏈與模組邊界，建立改動前的理解。</p><div class="trigger">用法：<code>/how session 恢復如何運作</code></div><div class="term" id="term-how"></div></div>
+  <div class="card"><h3>why <span class="tag t-understand">原因</span></h3><p>查 git、issue、文件與可用紀錄，回答「為什麼這樣設計」。區分有證據的結論與推測。</p><div class="trigger">用法：<code>/why cookie 校驗放在 Rust 層</code></div><div class="term" id="term-why"></div></div>
+  <div class="card"><h3>teach <span class="tag t-understand">講解</span></h3><p>視需要調用 how 與 why，再依讀者的理解順序講清楚子系統、變更或取捨。用來學懂系統。</p><div class="trigger">用法：<code>/teach 這次 runtime lookup 的設計</code></div><div class="term" id="term-teach"></div></div>
+  <div class="card"><h3>recall <span class="tag t-understand">跨對話回顧</span></h3><p>從可存取的過往對話、共享紀錄與目前狀態重建某個主題的上下文。要接手特定分支，也可讓 poteto-mode 執行 Session pickup。</p><div class="trigger">用法：<code>/recall 上週的 runtime 工作</code></div><div class="term" id="term-recall"></div></div>
+  <div class="card"><h3>interrogate <span class="tag t-review">對抗評審</span></h3><p>由設定的評審獨立嘗試弄壞變更或設計。每項 finding 必須附真實執行的命令、實際輸出與應有結果；主 agent 重跑確認後才保留。只回報，不自動修碼。</p><div class="trigger">新版已移除舊的四份 rubric / reviewer 參考檔；依 <a href="../skills/interrogate/SKILL.md">現行 skill</a>執行。</div><div class="term" id="term-interrogate"></div></div>
+  <div class="card"><h3>blast-radius <span class="tag t-review">連帶影響</span></h3><p>追查小 diff 對外部呼叫方、設定或工作流程的影響。找出結論依賴的關鍵事實，再用實際執行確認。</p><div class="trigger">用法：<code>/blast-radius 這次 rsync 排除規則修改</code></div><div class="term" id="term-blast"></div></div>
+  <div class="card"><h3>tdd <span class="tag t-discipline">測試先行</span></h3><p>有便宜的本地測試路徑時，先建立修前失敗、修後通過的回歸測試。測試路徑不合適時，選最近的有效驗證方式。</p><div class="trigger">用法：<code>/tdd 修復 cookie 過期未報錯</code></div><div class="term" id="term-tdd"></div></div>
+  <div class="card"><h3>principle-prove-it-works <span class="tag t-discipline">驗實物</span></h3><p>在實際使用路徑上檢查命令、畫面、儲存值或效能。完成報告應提供能支持結論的證據。</p><div class="trigger">可直接說：套用 prove it works，展示真實輸出。</div><div class="term" id="term-prove"></div></div>
+  <div class="card"><h3>show-me-your-work <span class="tag t-discipline">決策紀錄</span></h3><p>長任務留下決策、理由、證據與結果，讓離開後的讀者能查核做過什麼，以及哪些事情仍待決定。預設用 <code>decisions.tsv</code> 或 <code>.audit/&lt;task&gt;.tsv</code>，以附加方式保留歷史。</p><div class="trigger">用法：<code>/show-me-your-work</code></div><div class="term" id="term-show"></div></div>
+  <div class="card"><h3>figure-it-out <span class="tag t-discipline">大型任務</span></h3><p>為沒有現成做法的大型或跨模組變更設計嚴謹的執行方式，先定可檢查的完成條件，再用證據驗證假設。</p><div class="trigger">用法：<code>/figure-it-out 遷移這套 skill 載入方式</code></div><div class="term" id="term-figure"></div></div>
+  <div class="card"><h3>unslop <span class="tag t-write">文字清理</span></h3><p>刪除空泛詞彙、制式句型、模糊歸因與不必要的比喻，保留原意並配合原本語氣。README、PR 描述與對外文件都適用。</p><div class="trigger">用法：<code>/unslop 這段發布說明</code></div><div class="term" id="term-unslop"></div></div>
+  <div class="card"><h3>reflect <span class="tag t-reflect">改善 skill</span></h3><p>使用者明確要求時，從會話提取能改變未來決策的教訓，提出具體 skill 修改。先審閱提案，再改副本；不得直接改外掛快取。</p><div class="trigger">用法：<code>/reflect</code>；提案本身不代表修改已套用。</div><div class="term" id="term-reflect"></div></div>
 </div>
-
-<div class="note"><b>注意依赖：</b>有些 skill 会调用别的 skill，走 skills CLI 单装时要连带（fork README 的安装表）：<code>why</code> → <code>how</code>；<code>teach</code> → <code>how</code> + <code>why</code>；<code>blast-radius</code> 遇到大改动会以 <code>arena</code> 模式跑（多模型同题、合并答案），连带 <code>arena / how / why / unslop</code>；<code>create-verification-skill</code> 与 <code>maintain-verification-skill</code> 成对。你 dsh-home 里那 12 个是整目录拷的，日常派单不受影响；只有单装时要注意。</div>
-
-<h2><span class="n">3</span>组合套路：按任务类型挂 skill</h2>
-<p class="sub">别一次全挂 12 个（context 膨胀）。你的 pi 派单已按任务类型固化组合：</p>
+<h3 style="margin-top:28px">另外幾個值得直接指定的入口</h3>
 <div class="flow">
-  <div class="frow"><div class="task">🐛 Bug 修复</div><div class="combo"><code>tdd</code> + <code>blast-radius</code> + <code>principle-prove-it-works</code> + <code>show-me-your-work</code><br>先复现、再看爆炸半径、收工验实物、全程留轨迹</div></div>
-  <div class="frow"><div class="task">✨ 新功能实现</div><div class="combo"><code>tdd</code> + <code>principle-prove-it-works</code> + <code>show-me-your-work</code> + <code>unslop</code><br>测试先行、验实物、留轨迹、对外文本去 AI 腔</div></div>
-  <div class="frow"><div class="task">🔧 重构</div><div class="combo"><code>how</code> + <code>why</code> + <code>blast-radius</code> + <code>tdd</code><br>先懂它怎么做、为什么这样、再看会炸什么、最后用测试锁住行为</div></div>
-  <div class="frow"><div class="task">🔍 调研 / 侦察</div><div class="combo"><code>how</code> + <code>why</code> + <code>interrogate</code> + <code>figure-it-out</code><br>读源码核实事实、挖动机、多模型挑刺、无章可循时先设计 playbook</div></div>
-  <div class="frow"><div class="task">🧐 评审 / 审计</div><div class="combo"><code>blast-radius</code> + <code>interrogate</code> + <code>principle-prove-it-works</code><br>爆炸半径、独立评审、结论用跑代码证明</div></div>
+  <div class="frow"><div class="task">釐清需求</div><div class="combo"><code>/in-your-own-words</code> 先重述目標；<code>/sharpen</code> 改善提示詞後交還，不執行提示詞中的任務。</div></div>
+  <div class="frow"><div class="task">設計與平行工作</div><div class="combo"><code>/architect</code> 定型別與模組形狀後實作；加 <code>with checkpoint</code> 可先審設計。<code>/arena</code> 多份同題嘗試後合併；<code>/swarm</code> 分塊或競賽並彙整結果。</div></div>
+  <div class="frow"><div class="task">本次對話回顧</div><div class="combo"><code>/ketchup</code> 整理自你上一則訊息後的變化與待決事項；<code>/ketchup-video</code> 把進展做成短字幕影片，待決事項仍以文字列出。影片需有可用的渲染工具。</div></div>
+  <div class="frow"><div class="task">更多入口</div><div class="combo"><code>/technical-writing</code> 寫技術文件；<code>/benchmark-checklist</code> 查核效能數字；<code>/correct</code> 防止重複犯錯；<code>/poteto-help</code> 按情境找工具。</div></div>
 </div>
+<div class="note"><b>單裝要帶上依賴：</b>例如 why 會用 how，teach 會用 how / why，interrogate 現在依賴 arena 的派發與驗證步驟。不能假設裝了原先 12 個副本，就已具備新版完整工作流程；依 <a href="../README.md">README 安裝表</a>與各 skill 的相對連結檢查。</div>
 
-<h2><span class="n">4</span>三个实战教训（你亲授）</h2>
+<h2 id="tasks"><span class="n">3</span>任務提示詞：目標、完成檢查、證據</h2>
+<p class="sub">日常先交代想達成的結果，不必手工排列整串 skills。需要覆寫某一步時才指定 skill；一般由 poteto-mode 維持 playbook 的順序。</p>
+<div class="flow">
+  <div class="frow"><div class="task">🐛 修 bug</div><div class="combo"><code>/poteto-mode 修復 cookie 過期卻未報錯。先重現；完成條件是舊版失敗、新版通過，並附實際命令與輸出。</code></div></div>
+  <div class="frow"><div class="task">✨ 新功能</div><div class="combo"><code>/poteto-mode 新增本地 runtime 設定。環境變數仍優先；檢查有效、缺失、損壞的設定，展示實際選到的工具。</code></div></div>
+  <div class="frow"><div class="task">🔧 重構</div><div class="combo"><code>/poteto-mode 把載入邏輯集中到一個模組，行為不變。先保存目前輸出，再證明修改後一致。</code></div></div>
+  <div class="frow"><div class="task">🔍 調查</div><div class="combo"><code>/poteto-mode 調查 session 恢復為何失敗。列出已知事實、證據與待驗假設，暫不改碼。</code></div></div>
+  <div class="frow"><div class="task">🧐 評審</div><div class="combo"><code>/interrogate 檢查 git diff upstream main 與目前未提交的變更。只保留可執行重現的問題，暫不修碼。</code></div></div>
+</div>
+<p>Cursor 的 Custom Mode 可讓 poteto-mode 持續在上下文中。其他環境每個新任務重新指定入口，並使用該環境支援的持續執行能力。<code>/loop</code> 在 Cursor 與支援它的 Claude Code 環境可用，執行期限與停止條件依各自工具而定。</p>
+<div class="note"><b>多任務編排已更新：</b>Orchestrate 是 poteto-mode 的 playbook，沒有 pstack 自帶的 <code>/orchestrate</code> 指令。新版以 agent 工具、任務狀態與事件訂閱協調；舊 <code>skills/poteto-mode/scripts/orch/</code> 已移除。跨 harness 時依 adapter 使用可用能力。</div>
+
+<h2 id="lessons"><span class="n">4</span>派單紀律：把限制與驗收寫清楚</h2>
 <div class="lessons">
-  <div class="lesson"><h4>① 验收只认实物</h4><p>prove-it-works 落到派单：验收看 session 文件的新活动和产物文件本身，不认 exit 0 / "completed"。快得可疑的完成是去验证的信号，不是放行的信号。</p></div>
-  <div class="lesson"><h4>② 派单写负约束</h4><p>prompt 里写明"不许装工具链/包，做不到就报告收工"。否则 agent 会自作主张扩 scope——pi 曾花十几分钟装 rustup。</p></div>
-  <div class="lesson"><h4>③ prompt 与产物放 ~/workspace</h4><p>别放 /tmp：VM 替换会清空，曾导致续跑命令静默失败。每次复核完往 <code>~/workspace/pi-quality/quality-log.tsv</code> 追加一行。</p></div>
+  <div class="lesson"><h4>① 驗收沿真實使用路徑</h4><p>完成後讀取實際產物、儲存值或命令輸出。退出碼與 agent 自述不足以支持驗收；模擬動畫中的數字也不能充當證據。</p></div>
+  <div class="lesson"><h4>② 先寫清楚範圍</h4><p>如果工作不能下載工具鏈、不能改產品碼，或只能出計畫，就在提示詞明說。驗證失敗要交代原因與影響，不能默默擴大範圍。</p></div>
+  <div class="lesson"><h4>③ 證據可重現、可保存</h4><p>長任務記錄命令、來源版本與證據位置。臨時目錄適合試跑；要交付的產物放到可持續保存的位置，並清理自己建立的程序與暫存。</p></div>
 </div>
 
-<h2><span class="n">5</span>新动态：v0.15.27 的形式化验证 skill</h2>
-<p class="sub">2026-10-19 poteto 刚宣布：<code>/create-formal-verification-skill</code>（beta）。这是个 <b>meta-skill</b>——你告诉它想验证什么性质，它生成一套专用的形式化验证 skill + 验证套件。用法举例：</p>
+<h2 id="verification"><span class="n">5</span>驗證：行為、形式化性質與 statechart</h2>
+<p class="sub">先分清楚要檢查什麼：真實使用流程由行為驗證驅動；競態、不變條件與狀態轉移可另建模型或使用程式驗證工具。形式化結論受模型、邊界與工具假設限制。</p>
 <div class="grid">
-  <div class="card"><h3>TLA+ 建模</h3><p>给<b>状态机和并发系统</b>建模，在规约上跑求解器，数学证明不变量（必须永远为真的"定律"）。poteto 已经用它生成的 skill <b>找到了几个真 bug</b>。</p></div>
-  <div class="card"><h3>kani（Rust）</h3><p>无独立语言的新路线：<b>直接在 Rust 里写验证</b>，查未定义行为。不用另学一门建模语言。</p></div>
-  <div class="card"><h3>bend</h3><p>另一条新路线：bend 本身是编程语言，<b>证明以"定律"写在类型系统里</b>。</p></div>
+  <div class="card"><h3>create-verification-skill</h3><p>生成專案專用的驗證 skill，說明 Launch / Doctor / Drive / Evidence / Cleanup，並建立使用者功能地圖。把 skill 與 helpers 納入版本控制，交付證據或可重新產生證據的命令。</p></div>
+  <div class="card"><h3>maintain-verification-skill</h3><p>對照目前 app 更新驗證方法與功能地圖，回報 <code>clean</code>、<code>changed</code> 或 <code>blocked</code>。維護驗證時不順便改產品行為。</p></div>
+  <div class="card"><h3>create-formal-verification-skill</h3><p>挑 bug 代價高、一般測試難碰到的性質，依問題選工具，例如 TLA+ 或 kani。建立可失敗的檢查，記錄涵蓋範圍、假設與對應程式版本。</p></div>
+  <div class="card"><h3>maintain-formal-verification-skill</h3><p>程式變更後逐項查核規約與程式是否同步，區分 <code>in sync</code>、<code>updated</code>、<code>bug</code>、<code>blocked</code>。<code>updated</code> 與 <code>bug</code> 可同時成立。產品 bug 要報告；只有證據確認承諾刻意改變時才調整性質，不能為了過關而放寬。</p></div>
 </div>
-<div class="note"><b>已更新：</b>你的 fork 已同步到 <b>v0.15.29</b>（2026-10-21，上游 @190d287；本机 vendor 镜像还停在 v0.15.28），四个 verification skill 全入库：<code>create-verification-skill</code>（生成行为验证 skill）、<code>create-formal-verification-skill</code>（生成形式化验证 skill，beta）、<code>maintain-verification-skill</code>、<code>maintain-formal-verification-skill</code>（两个 upkeep 循环）。对 VCLI Verifier 方向，这是现成的深挖起点——见下方 §7。</div>
+<h3 style="margin-top:28px">/statechart：把 TLA+ 檢查結果畫成狀態圖</h3>
+<p><code>/statechart</code> 使用 TLC 檢查 TLA+ 模型，產生 Mermaid 圖與報告，列出違反規則的路徑。它是獨立入口，與生成專案驗證 skill 的四個工具用途不同。</p>
+<pre><span class="c"># 聊天提示詞範例</span>
+/statechart 為 runtime 選擇流程建立有界 TLA+ 模型。
+明確寫出環境變數、本地設定與 mise 的優先序。
+列出模型假設；若出現反例，依路徑在真實程式重現。
 
-<h2><span class="n">6</span>上手三步</h2>
+<span class="c"># 從 checkout 執行既有規約；SPEC.tla 與輸出目錄請換成實際路徑</span>
+skills/statechart/scripts/statechart SPEC.tla --config SPEC.cfg --out /path/to/new-output</pre>
+<div class="grid">
+  <div class="card"><h3>runtime 選擇順序</h3><p><code>TLA2TOOLS</code> 明確指定 jar 時優先，<code>JAVA</code> 可覆寫 Java。否則先讀 <code>$XDG_CONFIG_HOME/statechart/runtime.json</code>；檔案不存在才讀 <code>~/.config/statechart/runtime.json</code>，都沒有才用 mise。</p><p>本地 JSON 的 <code>jar</code> 與 <code>java</code> 都要是絕對路徑。既有設定無效就停止；走 mise 的首次執行可能安裝 TLC / Java，需要網路。</p></div>
+  <div class="card"><h3>讀懂結果的邊界</h3><p>超過 500 個模型狀態時，圖只保留違規路徑；若沒有規則違反，就不產生 <code>chart.mmd</code>，仍需閱讀報告。未檢查的規則不等於通過。</p><p>模型描述程式時，必須把反例逐步回放到真實程式。反例無法重現，就先查模型是否錯了。需要圖片時依 render 參考文件使用 Pele。</p></div>
+</div>
+<div class="note"><b>VCLI 可選的起點：</b>X11 cookie / session 狀態與並發可先建有界 TLA+ 模型；Rust unsafe 區段可評估 kani；「舊結果檔不得被評分」可寫成不變條件。這些是候選驗證題目，尚未代表對應專案已完成驗證。</div>
+<p class="sub">可查閱 <a href="../skills/statechart/SKILL.md">statechart 用法</a>與 <a href="../skills/statechart/examples/runtime-lookup/README.md">runtime lookup 範例</a>。範例模型通過，只能支持它明列的選擇策略與邊界，不能推論所有檔案系統或工具環境都正確。</p>
+
+<h2 id="start"><span class="n">6</span>上手三步</h2>
 <div class="steps">
-  <div class="step"><h4>选 3 个先用熟</h4><p>建议 <code>how</code>、<code>blast-radius</code>、<code>principle-prove-it-works</code>：理解、爆炸半径、验实物。这是所有任务类型的最大公约数。</p></div>
-  <div class="step"><h4>派单时挂上</h4><p>按 §3 的任务类型组合，用 <code>--skill</code> 透传。每个新任务用新 session-id（<code>muse-&lt;slug&gt;-&lt;yyyymmdd&gt;</code>），后台 stdin 挂 <code>&lt;/dev/null</code>。</p></div>
-  <div class="step"><h4>复盘时 reflect</h4><p>攒够 5 条 pi-quality 记录给自己一份小结：哪个组合返工少、哪类任务最容易翻车，沉淀进 skill。</p></div>
+  <div class="step"><h4>安裝並設定</h4><p>安裝所需 skills 與依賴，執行 <code>/setup-pstack</code>。在新對話確認 harness 與模型設定已載入。</p></div>
+  <div class="step"><h4>選一個能驗收的任務</h4><p>用 <code>/poteto-mode</code> 加目標、完成檢查與限制。跨 harness 時先讀 adapter；沒有 app 驅動方法就先建立 verification skill。</p></div>
+  <div class="step"><h4>核對證據，再沉澱教訓</h4><p>看真實輸出與未檢查項目。長任務用 <code>/show-me-your-work</code> 留紀錄；需要改善 skills 時再明確要求 <code>/reflect</code>。</p></div>
 </div>
 
-<h2><span class="n">7</span>深挖：四个 verification skill = VCLI Verifier 的操作化版本</h2>
-<p class="sub">四个 skill 组成一个完整的 verifier 闭环，恰好是你 VCLI 架构里 Generator / Policy / Executor / Verifier 的操作化形态。fork 的 README 也明确把 create 与 maintain 标成<b>成对安装</b>——生成 + upkeep，本来就是一个闭环的两半：</p>
-<div class="steps">
-  <div class="step"><h4>create-verification-skill</h4><p>生成"像用户一样驱动真实 app"的行为验证 skill：Launch / Doctor / Drive / Evidence / Cleanup + feature map。对应 <b>VCLI 的行为层验证</b>（virtuoso-cli 走 PTY 驱动、跑真实命令、留证据）。</p></div>
-  <div class="step"><h4>create-formal-verification-skill</h4><p>生成形式化验证 skill：选"bug 代价最大、测试最够不到"的代码，问题选工具（TLA+ / kani / bend）。对应 <b>VCLI 的性质层验证</b>（不变量、并发正确性）。</p></div>
-  <div class="step"><h4>maintain-verification-skill</h4><p>upkeep 循环，结果三分类：<code>clean</code> / <code>changed</code>（一个 PR 修 drift）/ <code>blocked</code>。只改验证，不改产品代码。</p></div>
-  <div class="step"><h4>maintain-formal-verification-skill</h4><p>upkeep 循环，结果四分类：<code>in sync</code> / <code>updated</code> / <code>bug</code> / <code>blocked</code>。这套分类可以直接借给 RSI / DNW runbook。</p></div>
+<h2 id="mirror"><span class="n">7</span>鏡像維護：pull 與同步 Cursor 是兩件事</h2>
+<p class="sub"><code>git pull --ff-only origin main</code> 更新 deanyou/pstack 已發布的內容。要把 Cursor 的新內容帶進鏡像，依 <a href="../MIRROR.md">MIRROR.md</a> 先更新 upstream，再合併 main，保留這個鏡像的修改。</p>
+<div class="lessons">
+  <div class="lesson"><h4>upstream 保持原樣</h4><p><code>upstream</code> 保存 Cursor 的 pstack 樹；<code>main</code> 加上 harness 適配與自有內容。排除清單從 main 讀出，不能假設 upstream 上也有同一份檔案。</p></div>
+  <div class="lesson"><h4>/scripts/ 必須錨定根目錄</h4><p><code>mirror-paths.txt</code> 用 <code>/scripts/</code> 保護鏡像根目錄腳本。寫成 <code>scripts/</code> 會把巢狀的同名目錄也排除，曾漏同步 statechart runtime 與 poteto-mode 工具更新。</p></div>
+  <div class="lesson"><h4>比內容，不只看版本號</h4><p>同步後核對 upstream 與 Cursor 的實際樹，重查 harness 編輯與 bundled prompt，並執行 <code>node --test scripts/sync-exclusions.test.mjs</code>。沒有新內容就不造空提交。</p></div>
 </div>
-<div class="lessons" style="margin-top:16px">
-  <div class="lesson"><h4>纪律 1：Able to fail</h4><p>每个 check 必须在故意弄坏的代码变体上失败过一次。没见过它失败的 check 证明不了任何事——这是 verifier 版的 prove-it-works。</p></div>
-  <div class="lesson"><h4>纪律 2：Sync commit</h4><p>每个 check 记录"上次确认描述的是哪个 commit 的代码"。代码变了、验证没跟上还继续 pass，是最危险的情况：<b>看起来像证明，其实描述的是不存在的代码</b>。这就是你的"验证履历"。</p></div>
-  <div class="lesson"><h4>纪律 3：不准放宽性质</h4><p>验证失败时不准弱化性质/模型去让它过；maintain run 不准改产品代码，bug 只报告。drift 和 bug 必须分开说——这就是"AI 找可疑、确定性工具定罪"。</p></div>
-</div>
-<div class="note"><b>给你的三个具体靶子：</b>① <code>virtuoso-cli</code> 的 <code>x11.rs</code>（X11 cookie/会话状态机 + 并发）→ TLA+ 的完美靶子：bug 代价大（你刚修了两个）、测试够不到；② Rust bridge 的 unsafe/内存行为 → kani；③ Rule2DRC harness 的 fail-closed（"旧结果文件不能被打分"）→ 本身就是一个 invariant，可以形式化。</div>
+<p>2026-11-02 的同步補回先前被排除的腳本，移除上游已刪除的 <code>orch/</code>，並保留本地 runtime 設定功能。本文以更新前的 <code>e144ce9</code> 為來源基準，對應 Cursor 快照 <code>ae5650f</code> 與套件版本 <code>0.15.36</code>。</p>
 
 <footer>
-  内容依据：<a href="https://github.com/deanyou/pstack">deanyou/pstack</a> @ <code>6f7bd80</code>（上游 v0.15.29 + harness adapters 提交）各 SKILL.md、README 与 docs/harness 原文 + 2026-10-19 poteto 的 X 帖（/create-formal-verification-skill 发布）。<br>
-  制作：2026-10-20 · 更新：2026-10-21（结合 deanyou/pstack）· 供个人学习使用
+  來源基準：<a href="https://github.com/deanyou/pstack/tree/e144ce9">deanyou/pstack @ e144ce9</a> · <a href="https://github.com/cursor/plugins/tree/ae5650f/pstack">Cursor 快照 ae5650f</a> · 套件 v0.15.36。<br>
+  查核來源：<a href="../README.md">README</a>、<a href="../skills/poteto-mode/SKILL.md">poteto-mode</a>、<a href="../skills/interrogate/SKILL.md">interrogate</a>、<a href="../skills/statechart/SKILL.md">statechart</a>、<a href="../docs/harness/README.md">harness adapters</a>與各 skill 原文。<br>
+  初版：2026-10-20 · 更新：2026-11-02 · 原檔名保留，便於既有連結繼續使用。頁內終端與舊 Pi 動畫皆為教學示意，不是實際執行紀錄。
 </footer>
+
 
 </div>
 <script>
 const DEMOS={
-how:[["cmd","/how \"pi 的 session 恢复是怎么工作的\""],["out","走读：session 存储 → 索引 → 恢复路径…"],["out","产出：心智模型（三层：落盘 / 索引 / 校验）"],["ok","✓ 先懂，再改"]],
-why:[["cmd","/why \"cookie 校验为什么放在 Rust 层\""],["out","并行查证据：git log · issue · 文档 · 聊天"],["out","结论（置信度 高）：校验必须贴着 transport"],["out","Python 层拿不到原始句柄——这是\"我知道\"，不是推测"]],
-teach:[["cmd","/teach \"legion 三元组隔离\""],["out","第 1 讲：session-id 管续跑"],["out","第 2 讲：worktree 管文件隔离"],["out","第 3 讲：branch 管合并边界"],["ok","✓ 按你的节奏讲到真懂"]],
-recall:[["cmd","/recall"],["out","翻聊天记录 + issue + 实时状态…"],["out","上次停在：PR #12 待合 · 回归 9/10 过"],["out","下一步：修 DNS 环境失败，再跑一轮"]],
-interrogate:[["cmd","/interrogate 这次改动"],["out","模型 A：边界漏了——空 cookie 没处理"],["out","模型 B：并发下 session 文件竞写"],["out","模型 C：无异议"],["ok","裁决：2 处盲区，先修再合（不自动改码）"]],
-blast:[["cmd","/blast-radius 这个 diff"],["out","grep 调用方：3 处——但这不是重点"],["out","grep 看不见的：preflight 脚本 + CI 变量"],["ok","✓ 关键事实已用真代码验证，不信报告"]],
-tdd:[["cmd","/tdd 修 cookie 过期不报错"],["out","先写回归测试：expired_cookie_rejected"],["bad","✗ FAIL（修前，如期失败）"],["out","改校验逻辑…"],["ok","✓ PASS（修后转绿）"]],
-prove:[["cmd","/prove-it-works 验收这次派单"],["out","不看 agent 报告，跑真实路径："],["out","pi-task 续跑 → 读 session 文件 → 值对得上"],["ok","✓ 实物通过，才算完成"]],
-show:[["cmd","/show-me-your-work"],["out","14:02 decide 挂 tdd+blast · 证据 session:212"],["out","14:19 verify 跑回归 137/138 · 证据 log 路径"],["out","14:31 ship 提 PR · 证据 commit 8a78f5a"],["ok","✓ 一行一决策，证据是路径不是段落"]],
-figure:[["cmd","/figure-it-out 迁移 40 个 SKILL 文件"],["out","先定完成定义：全部能被 dsh 加载（可证伪）"],["out","量化 scope：40 个文件 · 3 类问题"],["out","假设 H1：frontmatter 是唯一阻塞 → 验证中…"]],
-unslop:[["cmd","/unslop 这段发布说明"],["bad","原文：\"delve into the crucial tapestry…\""],["out","命中：delve / crucial / Not just X, but Y"],["ok","改后：\"This release fixes the cookie check.\""]],
-reflect:[["cmd","/reflect（仅你开口时才跑）"],["out","3 个评审 agent 并行挖本会话教训…"],["out","教训：派单必写负约束，否则 agent 扩 scope"],["ok","✓ 已落成 pi-task 模板的一行修改"]]
+  "how": [
+    [
+      "cmd",
+      "/how session 恢復如何運作"
+    ],
+    [
+      "out",
+      "示範：追蹤儲存 → 索引 → 恢復流程"
+    ],
+    [
+      "out",
+      "把模組邊界與資料流連起來"
+    ],
+    [
+      "ok",
+      "先理解，再判斷改動位置"
+    ]
+  ],
+  "why": [
+    [
+      "cmd",
+      "/why cookie 校驗放在 Rust 層"
+    ],
+    [
+      "out",
+      "示範：查 git、issue 與設計紀錄"
+    ],
+    [
+      "out",
+      "有直接證據才下結論"
+    ],
+    [
+      "out",
+      "不足之處標為推測與待查項"
+    ]
+  ],
+  "teach": [
+    [
+      "cmd",
+      "/teach runtime lookup 的設計"
+    ],
+    [
+      "out",
+      "示範：先解釋要解決的問題"
+    ],
+    [
+      "out",
+      "再說選擇順序與失敗方式"
+    ],
+    [
+      "ok",
+      "讀者能重述設計與取捨"
+    ]
+  ],
+  "recall": [
+    [
+      "cmd",
+      "/recall 上週的 runtime 工作"
+    ],
+    [
+      "out",
+      "示範：查過往紀錄與目前狀態"
+    ],
+    [
+      "out",
+      "區分已完成、失敗與未檢查"
+    ],
+    [
+      "out",
+      "指出接續工作的依據"
+    ]
+  ],
+  "interrogate": [
+    [
+      "cmd",
+      "/interrogate 這次改動，暫不修碼"
+    ],
+    [
+      "out",
+      "示範：評審以測試或腳本重現問題"
+    ],
+    [
+      "out",
+      "主 agent 重跑命令，核對實際與應有輸出"
+    ],
+    [
+      "ok",
+      "只保留驗證成立的 findings；不自動修碼"
+    ]
+  ],
+  "blast": [
+    [
+      "cmd",
+      "/blast-radius 這個 diff"
+    ],
+    [
+      "out",
+      "示範：追呼叫方、設定與工作流程"
+    ],
+    [
+      "out",
+      "找出結論依賴的關鍵事實"
+    ],
+    [
+      "ok",
+      "用真實執行檢查連帶影響"
+    ]
+  ],
+  "tdd": [
+    [
+      "cmd",
+      "/tdd 修復 cookie 過期未報錯"
+    ],
+    [
+      "out",
+      "示範：先寫聚焦回歸測試"
+    ],
+    [
+      "bad",
+      "修前失敗：測試能抓到原問題"
+    ],
+    [
+      "ok",
+      "修後通過：再查相關使用路徑"
+    ]
+  ],
+  "prove": [
+    [
+      "cmd",
+      "套用 prove it works，展示真實輸出"
+    ],
+    [
+      "out",
+      "示範：執行使用者真的會走的路徑"
+    ],
+    [
+      "out",
+      "讀產物、儲存值或命令結果"
+    ],
+    [
+      "ok",
+      "證據支持的部分才標記完成"
+    ]
+  ],
+  "show": [
+    [
+      "cmd",
+      "/show-me-your-work"
+    ],
+    [
+      "out",
+      "TSV：ts / phase / decision / why / evidence / result"
+    ],
+    [
+      "out",
+      "示範：每個決策附理由與證據位置"
+    ],
+    [
+      "ok",
+      "追加歷史，交代仍需關注的事項"
+    ]
+  ],
+  "figure": [
+    [
+      "cmd",
+      "/figure-it-out 遷移 skill 載入方式"
+    ],
+    [
+      "out",
+      "示範：先定可檢查的完成條件"
+    ],
+    [
+      "out",
+      "拆分假設與範圍，逐項求證"
+    ],
+    [
+      "out",
+      "保留決策紀錄與阻塞原因"
+    ]
+  ],
+  "unslop": [
+    [
+      "cmd",
+      "/unslop 這段發布說明"
+    ],
+    [
+      "bad",
+      "原文：delve into the crucial tapestry…"
+    ],
+    [
+      "out",
+      "示範：刪空泛詞彙，保留真實變更"
+    ],
+    [
+      "ok",
+      "改後：This release fixes the cookie check."
+    ]
+  ],
+  "reflect": [
+    [
+      "cmd",
+      "/reflect"
+    ],
+    [
+      "out",
+      "示範：三個 reviewer 提取可重用的教訓"
+    ],
+    [
+      "out",
+      "彙整 Accepted / Rejected / Backlog"
+    ],
+    [
+      "ok",
+      "先提出具體修改；等使用者核准才套用"
+    ]
+  ]
 };
 function runTerm(id,lines,delay){
   const el=document.getElementById(id); if(!el) return;
